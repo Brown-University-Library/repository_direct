@@ -1,0 +1,23 @@
+{% extends 'bootstrap_base.html' %}
+{% block css %}
+<link rel="stylesheet" href="{{ STATIC_URL }}css/style.css">
+<link rel="stylesheet" href="{{ STATIC_URL }}css/thumbnail-scaling.css">
+{% endblock %}
+{% block content %}
+<h1>{{ coll_results.name }}</h1>
+<h2>Items</h2>
+<ul style="list-style-type: none;">
+    {% for doc in coll_results.items.docs%}
+    <li class="row">
+      <div class="span4">
+        <a class="btn" href="{{doc.uri}}">BDR Item Page</a>
+        <a class="btn btn-info" href="{% url repo:xml-edit pid=doc.pid dsid="MODS" %}">Edit MODS</a>
+      </div>
+      <div class="span4">
+        {{ doc.primary_title }} - <em>{{doc.pid}}</em>
+      </div>
+      <hr class="span12"/>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

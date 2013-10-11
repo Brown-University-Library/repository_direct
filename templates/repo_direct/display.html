@@ -1,0 +1,14 @@
+{% extends 'bootstrap_base.html' %}
+{% block css %}
+<link rel="stylesheet" href="{{ STATIC_URL }}css/style.css">
+<link rel="stylesheet" href="{{ STATIC_URL }}css/thumbnail-scaling.css">
+{% endblock %}
+{% block content %}
+<h1>{{ obj.label }} - {{ obj.pid}}</h1>
+<h2>Datastreams</h2>
+<ul>
+    {% for k,v in obj.ds_list.items %}
+    <li><a href="{{k}}/">{{k}}</a> | <a href="{{k}}/edit/">Edit</a></li>
+    {% endfor %}
+</ul>
+{% endblock %}

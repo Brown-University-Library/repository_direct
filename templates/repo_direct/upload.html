@@ -1,0 +1,10 @@
+{% if obj %}
+    <p>Successfully ingested <b>{{ obj.label }}</b> as {{ obj.pid }}.</p>
+    <hr/>
+    {# re-display the form to allow additional uploads #}
+    <p>Upload another file?</p>
+{% endif %}
+<form method="post" enctype="multipart/form-data">{%csrf_token%}
+  {{form.as_ul}}
+  <input type="submit" value="Submit"/>
+</form>
