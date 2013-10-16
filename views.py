@@ -4,6 +4,7 @@ from django.shortcuts import render
 from django.core.urlresolvers import reverse
 from django.template import RequestContext
 from django.http import HttpResponseRedirect
+from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from eulfedora.server import Repository
@@ -13,13 +14,16 @@ from bdrcmodels.models import CommonMetadataDO
 from .forms import UploadMasterImageForm
 from .forms import DublinCoreEditForm
 from .forms import RightsMetadataEditForm
+from .forms import RightsMetadataEditForm2
 from .forms import IrMetadataEditForm
 from .forms import get_collections_choices
 from .forms import RepoLandingForm
 from .forms import FileReplacementForm
+from common.utilities import assign_rightsMetadata2
 from common.utilities import assign_rightsMetadata
 from common.utilities import assign_irMetadata
 import requests
+import json
 
 def landing(request):
     """Landing page for this repository interface"""
@@ -31,37 +35,6 @@ def landing(request):
     elif request.method == 'GET':
         form = RepoLandingForm()
         return render_to_response('repo_direct/landing.html', {'form': form}, context_instance=RequestContext(request))
-
-
-def upload(request):
-    """Upload view for mastertiff objects"""
-    obj = None
-    form = UploadMasterImageForm()
-    if request.method == 'POST':
-        form = UploadMasterImageForm(request.POST, request.FILES)
-        if form.is_valid():
-            repo = Repository()
-            obj = repo.get_object(type=MasterImage)
-            obj.mods.content = request.FILES['modsFile'].read()
-            obj.master.content = request.FILES['masterFile']
-            obj.master_colorbar.content = request.FILES['colorbarFile']
-            obj.label = form.cleaned_data['label']
-            obj.dc.content.title = form.cleaned_data['label']
-            obj.save()
-
-            form = UploadMasterImageForm()
-
-    if request.method == 'GET':
-        form = UploadMasterImageForm()
-
-    return render_to_response(
-        'repo_direct/upload.html',
-        {
-            'form': form,
-            'obj': obj
-        },
-        context_instance=RequestContext(request)
-    )
 
 
 def display(request, pid):
@@ -98,6 +71,26 @@ def rights_edit(request, pid, dsid):
     elif request.method == 'GET':
         form = RightsMetadataEditForm()
         return render_to_response('repo_direct/edit.html', {'form': form, 'obj': obj, 'dsid': "RightsMetadata"}, context_instance=RequestContext(request))
+
+@login_required
+def rights_edit2(request, pid, dsid):
+    r_choices = ['BDR_PUBLIC', 'BROWN:COMMUNITY:ALL', 'BROWN:DEPARTMENT:LIBRARY:REPOSITORY']
+    #r_choices = sorted(list(ShibWrapper(request).identities))
+    form = RightsMetadataEditForm2(request.POST or None)
+    if form.is_valid():
+        new_rights = form.build_rights()
+        repo = Repository()
+        obj = repo.get_object(pid, type=CommonMetadataDO)
+        obj = assign_rightsMetadata2(obj, new_rights)
+        obj.save()
+        messages.info(request, 'The sharing setting for %s have been set to %s' % (pid, new_rights) )
+        return HttpResponseRedirect(reverse("repo_direct:display", args=(pid,)))
+        #return HttpResponse(new_rights.serialize(pretty=True), content_type='text/xml')
+    return render( request, 'repo_direct/rights_form.html', { 
+        'form': form, 
+        'rights_choices': json.dumps(r_choices),
+        'pid': pid,
+    })
 
 def ir_edit(request, pid, dsid):
     repo = Repository()

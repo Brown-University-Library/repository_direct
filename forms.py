@@ -5,6 +5,7 @@ from django.contrib.admin.widgets import AdminFileWidget
 
 from eulxml.xmlmap.dc import DublinCore
 from bdrxml import irMetadata
+from bdrxml.rights import RightsBuilder
 from eulxml.forms import XmlObjectForm
 from common import utilities
 import ace_editor
@@ -47,6 +48,27 @@ class RightsMetadataEditForm(forms.Form):
     ]
     rights = forms.ChoiceField(choices=rights_choices, widget = forms.RadioSelect())
 
+class RightsMetadataEditForm2(forms.Form):
+    discover_and_read = forms.CharField(required=False)
+    discover_only = forms.CharField(required=False)
+    read_only = forms.CharField(required=False)
+    edit_rights = forms.CharField(required=False)
+    owners = forms.CharField(required=False, initial="BROWN:DEPARTMENT:LIBRARY:REPOSITORY")
+
+    def __init__(self, *args, **kwargs):
+        super(RightsMetadataEditForm2, self).__init__(*args, **kwargs)
+        for myField in self.fields:
+            self.fields[myField].widget.attrs['class'] = "select_rights"
+
+    def build_rights(self):
+        rights_builder = RightsBuilder()
+        [rights_builder.addReader(identity) for identity in self.cleaned_data['discover_and_read'].split(',') if identity]
+        [rights_builder.addDiscoverer(identity) for identity in self.cleaned_data['discover_and_read'].split(',') if identity]
+        [rights_builder.addReader(identity) for identity in self.cleaned_data['read_only'].split(',') if identity]
+        [rights_builder.addDiscoverer(identity) for identity in self.cleaned_data['discover_only'].strip().split(',') if identity]
+        [rights_builder.addEditor(identity) for identity in self.cleaned_data['edit_rights'].strip().split(',') if identity]
+        [rights_builder.addOwner(identity) for identity in self.cleaned_data['owners'].strip().split(',') if identity]
+        return rights_builder.build()
 
 def get_collections_choices():
     folder_info = utilities.get_folder_info()

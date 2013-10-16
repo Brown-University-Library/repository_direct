@@ -1,3 +1,5 @@
+{% extends 'repo_direct/repo_direct_base.html' %}
+{% block content %}
 <h1> Edit {{ obj.pid }} {{dsid}}</h1>
 <form method="post">
   {%csrf_token%}
@@ -5,4 +7,5 @@
   <input type="submit" value="Save"/>
 </form>
   
+{% endblock %}
 

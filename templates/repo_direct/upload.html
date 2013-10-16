@@ -1,3 +1,5 @@
+{% extends 'repo_direct/repo_direct_base.html' %}
+{% block content %}
 {% if obj %}
     <p>Successfully ingested <b>{{ obj.label }}</b> as {{ obj.pid }}.</p>
     <hr/>
@@ -8,3 +10,4 @@
   {{form.as_ul}}
   <input type="submit" value="Submit"/>
 </form>
+{% endblock %}
