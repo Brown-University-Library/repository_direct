@@ -76,7 +76,5 @@ def get_collections_choices():
     return [(str(cf['id']), cf['name']) for cf in child_folders]
 
 class IrMetadataEditForm(forms.Form):
-    collections = forms.MultipleChoiceField( choices=[(0,"NULL_COLLECTION"),], 
+    collections = forms.MultipleChoiceField( required=False, choices=[(0,"NULL_COLLECTION"),], 
                                             widget=CheckboxSelectMultiple)
-    #def __init__(self, *args, **kwargs):
-        #self.fields['collections'].choices = get_collections_choices()

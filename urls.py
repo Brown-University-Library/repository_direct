@@ -9,7 +9,7 @@ urlpatterns = patterns(
     url(r'^(?P<pid>[^/]+)/$', 'display', name='display'),
     url(r'^(?P<pid>[^/]+)/(?P<dsid>(MODS|RELS-EXT|DC|METS|RELS-INT))/edit/$', 'xml_edit', name='xml-edit'),
     url(r'^(?P<pid>[^/]+)/(?P<dsid>(irMetadata))/edit/$', 'ir_edit', name='ir-edit'),
-    url(r'^(?P<pid>[^/]+)/(?P<dsid>(rightsMetadata))/edit/$', 'rights_edit2', name='rights-edit'),
+    url(r'^(?P<pid>[^/]+)/(?P<dsid>(rightsMetadata))/edit/$', 'rights_edit', name='rights-edit'),
     url(r'^(?P<pid>[^/]+)/(?P<dsid>(jpg|JP2|PDF))/edit/$', 'file_edit', name='file-edit'),
 )
 urlpatterns += patterns(
