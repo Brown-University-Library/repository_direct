@@ -7,7 +7,6 @@ from eulxml.xmlmap.dc import DublinCore
 from bdrxml import irMetadata
 from bdrxml.rights import RightsBuilder
 from eulxml.forms import XmlObjectForm
-from common import utilities
 import ace_editor
 from .models import (
     BDR_Collection,
