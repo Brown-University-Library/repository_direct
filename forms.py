@@ -7,7 +7,7 @@ from eulxml.xmlmap.dc import DublinCore
 from bdrxml import irMetadata
 from bdrxml.rights import RightsBuilder
 from eulxml.forms import XmlObjectForm
-import ace_editor
+from django_ace import AceWidget
 from .models import (
     BDR_Collection,
 )
@@ -17,7 +17,7 @@ class FileReplacementForm( forms.Form ):
     replacement_file = forms.FileField(label="File", widget=AdminFileWidget)
 
 class EditXMLForm( forms.Form ):
-    xml_content = forms.CharField(widget=ace_editor.CodeEditorWidget(mode='xml'))
+    xml_content = forms.CharField(widget=AceWidget(mode='xml'))
 
 class RepoLandingForm(forms.Form):
     pid = forms.CharField(error_messages={'required': 'Please enter a pid'})
