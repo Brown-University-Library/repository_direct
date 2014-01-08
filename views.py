@@ -1,24 +1,22 @@
 """ Create your views here."""
-from django.shortcuts import render
+from django.conf import settings
 from django.core.urlresolvers import reverse
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.http import (
     HttpResponseRedirect,
     HttpResponse,
 )
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
+from django.shortcuts import render
 
 from eulfedora.server import Repository
-from bdrcmodels.models import MasterImage
 from bdrcmodels.models import CommonMetadataDO
+from bdrcmodels.models import MasterImage
 
+from .models import BDR_Collection
 from .forms import (
-    UploadMasterImageForm,
-    DublinCoreEditForm,
     RightsMetadataEditForm,
-    RightsMetadataEditForm2,
     IrMetadataEditForm,
-    get_collections_choices,
     RepoLandingForm,
     FileReplacementForm,
     EditXMLForm,
@@ -29,14 +27,11 @@ import json
 
 def landing(request):
     """Landing page for this repository interface"""
-    if request.method == "POST":
-        form = RepoLandingForm(request.POST)
-        if form.is_valid():
-            pid = form.cleaned_data['pid']
+    form = RepoLandingForm(request.POST or None)
+    if form.is_valid():
+        pid = form.cleaned_data['pid']
         return HttpResponseRedirect(reverse("repo_direct:display", args=(pid,)))
-    elif request.method == 'GET':
-        form = RepoLandingForm()
-        return render(request, 'repo_direct/landing.html', {'form': form})
+    return render(request, 'repo_direct/landing.html', {'form': form})
 
 
 def display(request, pid):
@@ -44,24 +39,11 @@ def display(request, pid):
     obj = repo.get_object(pid, create=False)
     return render(request, 'repo_direct/display.html', {'obj': obj})
 
-@login_required
-def edit(request, pid):
-    repo = Repository()
-    obj = repo.get_object(pid, type=CommonMetadataDO)
-    if request.method == "POST":
-        form = DublinCoreEditForm(request.POST, instance=obj.dc.content)
-        if form.is_valid():
-            form.update_instance()
-            obj.save()
-    elif request.method == 'GET':
-        form = DublinCoreEditForm(instance=obj.dc.content)
-    return render(request, 'repo_direct/edit.html', {'form': form, 'obj': obj})
-
 
 @login_required
 def rights_edit(request, pid, dsid):
     r_choices = ['BDR_PUBLIC', 'BROWN:COMMUNITY:ALL', 'BROWN:DEPARTMENT:LIBRARY:REPOSITORY']
-    form = RightsMetadataEditForm2(request.POST or None)
+    form = RightsMetadataEditForm(request.POST or None)
     if form.is_valid():
         new_rights = form.build_rights()
         repo = Repository()
@@ -79,12 +61,12 @@ def rights_edit(request, pid, dsid):
 
 def ir_edit(request, pid, dsid):
     repo = Repository()
-    obj = repo.get_object(pid, type=CommonMetadataDO)
+    library_collection = BDR_Collection( collection_id=settings.LIBRARY_PARENT_FOLDER_ID)
     form = IrMetadataEditForm(request.POST or None)
-    form.fields['collections'].choices = get_collections_choices()
+    form.fields['collections'].choices = library_collection.subfolder_choices
+    obj = repo.get_object(pid, type=CommonMetadataDO)
     if form.is_valid():
         new_collections = form.cleaned_data['collections']
-        obj = repo.get_object(pid, type=CommonMetadataDO)
         obj.irMD.content.collection_list = new_collections
         obj.save()
         messages.info(request, 'The collecitons for %s have changed' % (pid,), extra_tags='text-info' )
@@ -95,25 +77,22 @@ def ir_edit(request, pid, dsid):
         'dsid': "irMetadata" 
     })
 
+
+@login_required
 def file_edit(request, pid, dsid):
     repo = Repository()
     obj = repo.get_object(pid,create=False) 
-    if request.method == 'POST':
-        form = FileReplacementForm(request.POST, request.FILES)
-        if form.is_valid():
-            if dsid in obj.ds_list:
-                datastream_obj = obj.getDatastreamObject(dsid)
-                datastream_obj.content = request.FILES['replacement_file']
-                # use the browser-supplied mimetype for now, even though we know this is unreliable
-                datastream_obj.mimetype = request.FILES['replacement_file'].content_type
-                # let's store the original file name as the datastream label
-                datastream_obj.label = request.FILES['replacement_file'].name
-                datastream_obj.save()
-                obj.save()
-            return HttpResponseRedirect(reverse("repo_direct:display", args=(pid,)))
-        dsid="POSTED"
-    elif request.method == 'GET':
-        form = FileReplacementForm()
+    form = FileReplacementForm(request.POST or None, request.FILES or None)
+    if form.is_valid():
+        if dsid in obj.ds_list:
+            datastream_obj = obj.getDatastreamObject(dsid)
+            datastream_obj.content = request.FILES['replacement_file'].read()
+            # use the browser-supplied mimetype for now, even though we know this is unreliable
+            datastream_obj.mimetype = request.FILES['replacement_file'].content_type
+            datastream_obj.label = request.FILES['replacement_file'].name
+            datastream_obj.save()
+            obj.save()
+        return HttpResponseRedirect(reverse("repo_direct:display", args=(pid,)))
     return render(request, 'repo_direct/file_edit.html',
                               {'form': form,
                                'obj': obj,
@@ -123,7 +102,6 @@ def file_edit(request, pid, dsid):
 
 @login_required
 def xml_edit(request, pid, dsid):
-    from forms import EditXMLForm
     request.encoding = 'utf-8'
     repo = Repository()
     obj = repo.get_object(pid)
