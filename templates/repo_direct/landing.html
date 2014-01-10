@@ -1,6 +1,6 @@
 {% extends 'repo_direct/repo_direct_base.html' %}
+{% block page_title %}Please enter a pid{% endblock %}
 {% block content %}
-<h1>Please enter a pid</h1>
 <form method="post">
   {%csrf_token%}
   <table>{{form.as_table}}</table>

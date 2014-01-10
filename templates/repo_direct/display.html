@@ -1,6 +1,6 @@
 {% extends 'repo_direct/repo_direct_base.html' %}
+{% block page_title %}View or edit {{obj.pid}}{% endblock %}
 {% block content %}
-<h1>{{ obj.pid }}</h1>
 <h2>Datastreams</h2>
 <ol>
     {% for k,v in obj.ds_list.items %}

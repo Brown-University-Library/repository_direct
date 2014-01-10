@@ -6,12 +6,13 @@
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
 {% endblock %}
 
-{% block javascript %} 
+{% block extra_js %} 
   {{form.media}}
 {% endblock %}
 
+{% block page_title %}Edit {{ pid }}'s {{dsid}} datastream {% endblock %}
+
 {% block content %}
-  <h1> Edit {{ pid }}'s {{dsid}} datastream</h1>
   <form method="post">
     {%csrf_token%}
     {{form|bootstrap}}

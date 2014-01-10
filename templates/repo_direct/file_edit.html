@@ -1,5 +1,5 @@
 {% extends 'repo_direct/repo_direct_base.html' %}
-<h1> Edit {{pid}} {{dsid}}</h1>
+{% block page_title %}Edit {{ pid }}'s {{dsid}} datastream {% endblock %}
 {% block content %}
 <img src="https://repository.library.brown.edu/viewers/image/thumbnail/{{pid}}/" alt="" />
 <form action={% url "repo_direct:file-edit" pid dsid %} method="post" enctype="multipart/form-data">
