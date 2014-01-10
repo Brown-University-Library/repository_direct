@@ -1,20 +1,20 @@
 {% extends 'repo_direct/repo_direct_base.html' %}
 {% load bootstrap %}
 {% block css %}
-<link rel="stylesheet" href="{{ STATIC_URL }}css/style.css">
-<link rel="stylesheet" href="{{ STATIC_URL }}css/thumbnail-scaling.css">
-<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <link rel="stylesheet" href="{{ STATIC_URL }}css/style.css">
+  <link rel="stylesheet" href="{{ STATIC_URL }}css/thumbnail-scaling.css">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
 {% endblock %}
+
 {% block javascript %} 
-{{form.media}}
+  {{form.media}}
 {% endblock %}
-</head>
-<body>
+
 {% block content %}
-<h1> Edit {{ obj.pid }}'s {{dsid}} datastream</h1>
-<form method="post">
-  {%csrf_token%}
-  {{form|bootstrap}}
-  <input type="submit" class="btn btn-primary" value="Save"/>
-</form>
+  <h1> Edit {{ pid }}'s {{dsid}} datastream</h1>
+  <form method="post">
+    {%csrf_token%}
+    {{form|bootstrap}}
+    <input type="submit" class="btn btn-primary" value="Save"/>
+  </form>
 {% endblock %}

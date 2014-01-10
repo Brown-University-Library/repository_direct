@@ -1,8 +1,8 @@
 {% extends 'repo_direct/repo_direct_base.html' %}
-<h1> Edit {{ obj.pid }} {{dsid}}</h1>
+<h1> Edit {{pid}} {{dsid}}</h1>
 {% block content %}
-<img src="https://repository.library.brown.edu/viewers/image/thumbnail/{{obj.pid}}/" alt="" />
-<form action={% url "repo_direct:file-edit" obj.pid dsid %} method="post" enctype="multipart/form-data">
+<img src="https://repository.library.brown.edu/viewers/image/thumbnail/{{pid}}/" alt="" />
+<form action={% url "repo_direct:file-edit" pid dsid %} method="post" enctype="multipart/form-data">
   {% csrf_token %}
     {{ form.as_p }}
     <input type="submit" value="Submit" class="btn"/>

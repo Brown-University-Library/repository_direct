@@ -1,5 +1,5 @@
-from django.conf import settings
 from django.db import models
+from . import app_settings as settings
 import requests
 
 class BDR_Collection(object):

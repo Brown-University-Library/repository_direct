@@ -3,11 +3,12 @@ from django import forms
 from django.forms.widgets import RadioSelect, CheckboxSelectMultiple
 from django.contrib.admin.widgets import AdminFileWidget
 
-from eulxml.xmlmap.dc import DublinCore
 from bdrxml import irMetadata
 from bdrxml.rights import RightsBuilder
-from eulxml.forms import XmlObjectForm
 from django_ace import AceWidget
+from eulxml.xmlmap.dc import DublinCore
+from eulxml.forms import XmlObjectForm
+
 from .models import (
     BDR_Collection,
 )
