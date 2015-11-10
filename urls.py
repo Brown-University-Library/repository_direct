@@ -1,7 +1,8 @@
 from django.conf.urls import url, patterns
-from eulfedora.views import raw_datastream, raw_audit_trail
 from eulfedora import views as eulviews
+from . import app_settings as settings
 from . import views
+
 
 
 urlpatterns = patterns(
@@ -17,7 +18,7 @@ urlpatterns = patterns(
         name = 'display'
     ),
     url(
-        regex= r'^(?P<pid>[^/]+)/(?P<dsid>(MODS|RELS-EXT|DC|METS|RELS-INT))/edit/$',
+        regex= r'^(?P<pid>[^/]+)/(?P<dsid>({}))/edit/$'.format('|'.join(settings.XML_DSIDS)),
         view = views.xml_edit,
         name = 'xml-edit'
     ),
@@ -32,30 +33,19 @@ urlpatterns = patterns(
         name = 'rights-edit'
     ),
     url(
-        regex= r'^(?P<pid>[^/]+)/(?P<dsid>(tiff|jpg|JP2|PDF|content))/edit/$',
+        regex= r'^(?P<pid>[^/]+)/(?P<dsid>({}))/edit/$'.format( '|'.join(settings.CONTENT_DSIDS)),
         view = views.file_edit,
         name = 'file-edit'
     ),
-)
-urlpatterns += patterns(
-    '',
     url(
         regex= r'^(?P<pid>[^/]+)/AUDIT/$',
-        view = eulviews.raw_audit_trail
+        view = eulviews.raw_audit_trail,
         name = 'audit'
     ),
     url(
-        regex= r'^(?P<pid>[^/]+)/(?P<dsid>(MODS|RELS-EXT|DC|METS|RELS-INT))/$',
+        regex= r'^(?P<pid>[^/]+)/(?P<dsid>({}))/$'.format('|'.join(settings.ALL_DSIDS)),
         view = eulviews.raw_datastream,
-        name = 'raw-datastream'
-    ),
-    url(
-        regex= r'^(?P<pid>[^/]+)/(?P<dsid>(irMetadata|rightsMetadata))/$',
-        view = eulviews.raw_datastream
-    ),
-    url(
-        regex= r'^(?P<pid>[^/]+)/(?P<dsid>(tiff|jpg|JP2|PDF|content))/$',
-        view = eulviews.raw_datastream
+        name = 'raw-datastream',
     ),
 
 )
