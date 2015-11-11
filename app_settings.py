@@ -46,6 +46,7 @@ CONTENT_DSIDS = [
     "JPG", "jpg",
     "PNG", "png",
     "GIF", "gif",
+    "MASTER_TIFF", "master_tiff",
 
     #Document
     "DOC",
