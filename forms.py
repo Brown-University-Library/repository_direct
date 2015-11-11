@@ -18,7 +18,7 @@ class FileReplacementForm( forms.Form ):
     replacement_file = forms.FileField(label="File", widget=AdminFileWidget)
 
 class EditXMLForm( forms.Form ):
-    xml_content = forms.CharField(widget=AceWidget(mode='xml'))
+    xml_content = forms.CharField(widget=AceWidget(mode='xml', width="100%", height="500px"))
 
 class RepoLandingForm(forms.Form):
     pid = forms.CharField(error_messages={'required': 'Please enter a pid'})
@@ -47,5 +47,5 @@ class RightsMetadataEditForm(forms.Form):
 
 
 class IrMetadataEditForm(forms.Form):
-    collections = forms.MultipleChoiceField( required=False, choices=[(0,"NULL_COLLECTION"),], 
+    collections = forms.MultipleChoiceField( required=False, choices=[(0,"NULL_COLLECTION"),],
                                             widget=CheckboxSelectMultiple)

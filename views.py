@@ -49,8 +49,8 @@ def rights_edit(request, pid, dsid):
         obj.save()
         messages.info(request, 'The sharing setting for %s have changed' % (pid,), extra_tags='text-info' )
         return HttpResponseRedirect(reverse("repo_direct:display", args=(pid,)))
-    return render( request, 'repo_direct/rights_form.html', { 
-        'form': form, 
+    return render( request, 'repo_direct/rights_form.html', {
+        'form': form,
         'rights_choices': json.dumps(settings.DEFAULT_RIGHTS_CHOICES),
         'pid': pid,
         'dsid': dsid,
@@ -68,9 +68,9 @@ def ir_edit(request, pid, dsid):
         messages.info(request, 'The collecitons for %s have changed' % (pid,), extra_tags='text-info' )
         return HttpResponseRedirect(reverse("repo_direct:display", args=(pid,)))
     return render(request, 'repo_direct/edit.html',{
-        'form': form, 
+        'form': form,
         'pid': pid,
-        'dsid': "irMetadata" 
+        'dsid': "irMetadata"
     })
 
 
@@ -78,7 +78,7 @@ def ir_edit(request, pid, dsid):
 def file_edit(request, pid, dsid):
     form = FileReplacementForm(request.POST or None, request.FILES or None)
     if form.is_valid():
-        obj = repo.get_object(pid,create=False) 
+        obj = repo.get_object(pid,create=False)
         if dsid in obj.ds_list:
             datastream_obj = obj.getDatastreamObject(dsid)
             datastream_obj.content = request.FILES['replacement_file'].read()
@@ -90,8 +90,8 @@ def file_edit(request, pid, dsid):
         return HttpResponseRedirect(reverse("repo_direct:display", args=(pid,)))
     return render(request, 'repo_direct/file_edit.html', {
         'form': form,
-        'dsid': dsid, 
-        'pid': pid, 
+        'dsid': dsid,
+        'pid': pid,
     })
 
 
@@ -116,8 +116,8 @@ def xml_edit(request, pid, dsid):
         else:
             xml_content = "No datastream found"
         form = EditXMLForm({'xml_content': xml_content})
-    return render(request, 'repo_direct/edit2.html', {
-        'form': form, 
-        'pid': pid, 
+    return render(request, 'repo_direct/xml_edit.html', {
+        'form': form,
+        'pid': pid,
         'dsid': dsid
     })
