@@ -31,12 +31,20 @@ def landing(request):
     if form.is_valid():
         pid = form.cleaned_data['pid']
         return HttpResponseRedirect(reverse("repo_direct:display", args=(pid,)))
-    return render(request, 'repo_direct/landing.html', {'form': form})
+    return render(
+        request,
+        template_name='repo_direct/landing.html',
+        dictionary={'form': form}
+    )
 
 
 def display(request, pid):
     obj = repo.get_object(pid, create=False)
-    return render(request, 'repo_direct/display.html', {'obj': obj})
+    return render(
+        request,
+        template_name='repo_direct/display.html',
+        dictionary={'obj': obj}
+    )
 
 
 @login_required
@@ -49,12 +57,16 @@ def rights_edit(request, pid, dsid):
         obj.save()
         messages.info(request, 'The sharing setting for %s have changed' % (pid,), extra_tags='text-info' )
         return HttpResponseRedirect(reverse("repo_direct:display", args=(pid,)))
-    return render( request, 'repo_direct/rights_form.html', {
-        'form': form,
-        'rights_choices': json.dumps(settings.DEFAULT_RIGHTS_CHOICES),
-        'pid': pid,
-        'dsid': dsid,
-    })
+    return render(
+        request,
+        template_name='repo_direct/rights_form.html',
+        dictionary={
+            'form': form,
+            'rights_choices': json.dumps(settings.DEFAULT_RIGHTS_CHOICES),
+            'pid': pid,
+            'dsid': dsid,
+        }
+    )
 
 def ir_edit(request, pid, dsid):
     library_collection = BDR_Collection( collection_id=settings.LIBRARY_PARENT_FOLDER_ID)
@@ -67,11 +79,15 @@ def ir_edit(request, pid, dsid):
         obj.save()
         messages.info(request, 'The collecitons for %s have changed' % (pid,), extra_tags='text-info' )
         return HttpResponseRedirect(reverse("repo_direct:display", args=(pid,)))
-    return render(request, 'repo_direct/edit.html',{
-        'form': form,
-        'pid': pid,
-        'dsid': "irMetadata"
-    })
+    return render(
+        request,
+        template_name ='repo_direct/edit.html',
+        dictionary={
+            'form': form,
+            'pid': pid,
+            'dsid': "irMetadata"
+        }
+    )
 
 
 @login_required
@@ -88,11 +104,15 @@ def file_edit(request, pid, dsid):
             datastream_obj.save()
             obj.save()
         return HttpResponseRedirect(reverse("repo_direct:display", args=(pid,)))
-    return render(request, 'repo_direct/file_edit.html', {
-        'form': form,
-        'dsid': dsid,
-        'pid': pid,
-    })
+    return render(
+        request,
+        template_name='repo_direct/file_edit.html',
+        dictionary={
+            'form': form,
+            'dsid': dsid,
+            'pid': pid,
+        }
+    )
 
 
 @login_required
@@ -116,8 +136,12 @@ def xml_edit(request, pid, dsid):
         else:
             xml_content = "No datastream found"
         form = EditXMLForm({'xml_content': xml_content})
-    return render(request, 'repo_direct/xml_edit.html', {
-        'form': form,
-        'pid': pid,
-        'dsid': dsid
-    })
+    return render(
+        request,
+        template_name='repo_direct/xml_edit.html',
+        dictionary={
+            'form': form,
+            'pid': pid,
+            'dsid': dsid
+        }
+    )
