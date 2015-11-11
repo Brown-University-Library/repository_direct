@@ -1,11 +1,11 @@
 {% extends 'repo_direct/repo_direct_base.html' %}
 {% block page_title %}Edit {{ pid }}'s {{dsid}} datastream {% endblock %}
 {% block content %}
-<img src="https://repository.library.brown.edu/viewers/image/thumbnail/{{pid}}/" alt="" />
+<a href="{% url "repo_direct:raw-datastream" pid dsid %}" class="btn btn-primary btn-block">View Current<a>
 <form action={% url "repo_direct:file-edit" pid dsid %} method="post" enctype="multipart/form-data">
   {% csrf_token %}
     {{ form.as_p }}
-    <input type="submit" value="Submit" class="btn"/>
+    <input type="submit" value="Submit" class="btn btn-primary"/>
 </form>
 {% endblock %}
 
