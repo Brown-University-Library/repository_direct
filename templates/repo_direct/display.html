@@ -2,9 +2,25 @@
 {% block page_title %}View or edit {{obj.pid}}{% endblock %}
 {% block content %}
 <h2>Datastreams</h2>
-<ol>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Datastream ID </th>
+      <th>View / Edit</th>
+    </tr>
+  </thead>
+  <tbody>
     {% for k,v in obj.ds_list.items %}
-    <li><a href="{{k}}/">{{k}}</a> | <a href="{{k}}/edit/">Edit</a></li>
+    <tr>
+      <th>{{forloop.counter}}</th>
+      <td>{{k}}</td>
+      <td>
+        <a class="btn btn-primary btn-small" href="{{k}}/">View</a>
+        <a class="btn btn-success btn-small" href="{{k}}/edit/">Edit</a>
+      </td>
+    </tr>
     {% endfor %}
-</ol>
+  </tbody>
+</table>
 {% endblock %}
