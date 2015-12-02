@@ -1,0 +1,9 @@
+{% extends 'repo_direct/repo_direct_base.html' %}
+{% block page_title %}Reorder children of {{pid}}{% endblock %}
+{% block content %}
+<ul>
+{% for child in children %}
+  <li>{{child.pid}}</li>
+{% endfor %}
+</ul>
+{% endblock %}

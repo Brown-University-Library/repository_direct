@@ -1,3 +1,4 @@
+import json
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -9,6 +10,7 @@ from django.shortcuts import render
 
 from eulfedora.server import Repository
 from bdrcmodels.models import CommonMetadataDO
+from bdrcommon import common as bdrcommon
 
 from . import app_settings as settings
 from .models import BDR_Collection
@@ -20,9 +22,9 @@ from .forms import (
     EditXMLForm,
 )
 
-import json
 
 repo = Repository()
+bdr_server = bdrcommon.BdrServer(settings.BDR_BASE)
 
 
 def landing(request):
@@ -46,6 +48,24 @@ def display(request, pid):
         request,
         template_name='repo_direct/display.html',
         dictionary={'obj': obj}
+    )
+
+
+@login_required
+def reorder(request, pid):
+    bdr_item = bdrcommon.BdrItem(pid, bdr_server, identities=[settings.BDR_ADMIN])
+    item_data = bdr_item.data
+    #try:
+    children = bdr_item.data['relations']['hasPart']
+    #except KeyError:
+    #    children = []
+    return render(
+        request,
+        template_name='repo_direct/reorder.html',
+        dictionary={
+            'pid': pid,
+            'children': children,
+        }
     )
 
 
