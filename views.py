@@ -1,9 +1,9 @@
-""" Create your views here."""
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import (
     HttpResponseRedirect,
+    Http404,
 )
 from django.shortcuts import render
 
@@ -40,6 +40,8 @@ def landing(request):
 
 def display(request, pid):
     obj = repo.get_object(pid, create=False)
+    if not obj.exists:
+        raise Http404
     return render(
         request,
         template_name='repo_direct/display.html',
