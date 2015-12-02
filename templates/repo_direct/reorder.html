@@ -4,7 +4,7 @@
 {% block content %}
 <ul id="children">
 {% for child in children %}
-  <li>{{child.pid}}</li>
+  <li>{{child.pid}} <img src={{child.thumbnail_url}} /></li>
 {% endfor %}
 </ul>
 {% endblock %}

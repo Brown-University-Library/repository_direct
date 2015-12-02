@@ -59,6 +59,8 @@ def reorder(request, pid):
     children = bdr_item.data['relations']['hasPart']
     #except KeyError:
     #    children = []
+    for child in children:
+        child['thumbnail_url'] = '%s/%s' % (settings.THUMBNAIL_BASE_URL, child['pid'])
     return render(
         request,
         template_name='repo_direct/reorder.html',
