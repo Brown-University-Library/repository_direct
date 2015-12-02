@@ -1,9 +1,17 @@
 {% extends 'repo_direct/repo_direct_base.html' %}
+{% load staticfiles %}
 {% block page_title %}Reorder children of {{pid}}{% endblock %}
 {% block content %}
-<ul>
+<ul id="children">
 {% for child in children %}
   <li>{{child.pid}}</li>
 {% endfor %}
 </ul>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'repo_direct/Sortable.min.js' %}"></script>
+<script type="text/javascript">
+var el = document.getElementById('children');
+var sortable = Sortable.create(el);
+</script>
 {% endblock %}
