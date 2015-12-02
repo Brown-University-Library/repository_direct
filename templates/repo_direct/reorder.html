@@ -2,16 +2,28 @@
 {% load staticfiles %}
 {% block page_title %}Reorder children of {{pid}}{% endblock %}
 {% block content %}
-<ul id="children">
+<div id="children">
 {% for child in children %}
-  <li>{{child.pid}} <img src={{child.thumbnail_url}} /></li>
+  <div>
+    <h4>{{child.pid}}</h4>
+    <img class="drag-handle" src={{child.thumbnail_url}} />
+    <span>Previous Order: {{child.order}}</span>
+  </div>
 {% endfor %}
 </ul>
+<h4>Item Information</h4>
+<dl>
+  <dd>Title</dd><dt>{{brief.title.0}}</dt>
+  <dd>Abstract</dd><dt>{{brief.abstract.0}}</dt>
+</dl>
 {% endblock %}
 {% block extra_js %}
 <script src="{% static 'repo_direct/Sortable.min.js' %}"></script>
 <script type="text/javascript">
 var el = document.getElementById('children');
-var sortable = Sortable.create(el);
+var sortable = Sortable.create(el, {
+    handle: ".drag-handle",
+}
+);
 </script>
 {% endblock %}

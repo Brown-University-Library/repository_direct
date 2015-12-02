@@ -66,6 +66,7 @@ def reorder(request, pid):
         template_name='repo_direct/reorder.html',
         dictionary={
             'pid': pid,
+            'brief': item_data['brief'],
             'children': children,
         }
     )
