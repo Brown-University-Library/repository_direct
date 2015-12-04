@@ -61,7 +61,11 @@ def reorder(request, pid):
             child_pids_ordered_list = form.cleaned_data['child_pids_ordered_list'].split(u',')
             pairs_param_for_api = json.dumps([(value, str(index+1)) for index, value in enumerate(child_pids_ordered_list)])
             r = requests.post(settings.REORDER_URL, data={'pairs': pairs_param_for_api})
-            return HttpResponseRedirect(reverse('repo_direct:display', args=(pid,)))
+            if r.ok:
+                messages.info(request, 'New order has been submitted (allow a bit of time for the changes to appear)')
+                return HttpResponseRedirect(reverse('repo_direct:display', args=(pid,)))
+            else:
+                raise Exception('error submitting new order')
     bdr_item = bdrcommon.BdrItem(pid, bdr_server, identities=[settings.BDR_ADMIN])
     item_data = bdr_item.data
     children = bdr_item.data['relations']['hasPart'] #[] if item has no children
