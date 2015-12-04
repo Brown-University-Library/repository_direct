@@ -7,6 +7,7 @@ from django.http import (
     Http404,
 )
 from django.shortcuts import render
+import requests
 
 from eulfedora.server import Repository
 from bdrcmodels.models import CommonMetadataDO
@@ -20,6 +21,7 @@ from .forms import (
     RepoLandingForm,
     FileReplacementForm,
     EditXMLForm,
+    ReorderForm,
 )
 
 
@@ -53,6 +55,14 @@ def display(request, pid):
 
 @login_required
 def reorder(request, pid):
+    form = ReorderForm(request.POST or None)
+    if request.method == 'POST':
+        if form.is_valid():
+            child_pids_ordered_list = form.cleaned_data['child_pids_ordered_list'].split(u',')
+            pairs_param_for_api = json.dumps([(value, str(index+1)) for index, value in enumerate(child_pids_ordered_list)])
+            print('pairs param: %s' % pairs_param_for_api)
+            r = requests.post(settings.REORDER_URL, data={'pairs': pairs_param_for_api})
+            return HttpResponseRedirect(reverse('repo_direct:display', args=(pid,)))
     bdr_item = bdrcommon.BdrItem(pid, bdr_server, identities=[settings.BDR_ADMIN])
     item_data = bdr_item.data
     #try:
@@ -68,6 +78,7 @@ def reorder(request, pid):
             'pid': pid,
             'brief': item_data['brief'],
             'children': children,
+            'form': form,
         }
     )
 

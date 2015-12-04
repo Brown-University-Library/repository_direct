@@ -12,6 +12,11 @@
   </div>
 {% endfor %}
 </div>
+<form action="" method="post">
+  {% csrf_token %}
+  {{form.as_p}}
+  <input type="submit" value="Submit new order"/>
+</form>
 <h4>Item Information</h4>
 <dl>
   <dd>Title</dd><dt>{{brief.title.0}}</dt>
@@ -24,8 +29,15 @@
 var el = document.getElementById('children');
 var sortable_element = Sortable.create(el, {
     handle: ".drag-handle",
+    onUpdate: function(evt) {
+        setPidListInForm();
+    },
 }
 );
+function setPidListInForm() {
+    var ids_list = sortable_element.toArray();
+    $("#id_child_pids_ordered_list").val(ids_list.toString());
+};
 function printOrder() {
     var ids_list = sortable_element.toArray();
     console.log(ids_list);

@@ -10,6 +10,7 @@ def get_app_setting(app_setting):
         raise ImproperlyConfigured(error_msg)
 
 BDR_BASE = get_app_setting("BDR_BASE")
+REORDER_URL = '%s/api/private/reorder/' % BDR_BASE
 THUMBNAIL_BASE_URL = '%s/viewers/image/thumbnail' % BDR_BASE
 ITEM_POST_URL = get_app_setting("ITEM_POST_URL")
 FOLDER_API_PUBLIC = get_app_setting("FOLDER_API_PUBLIC")
