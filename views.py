@@ -60,15 +60,11 @@ def reorder(request, pid):
         if form.is_valid():
             child_pids_ordered_list = form.cleaned_data['child_pids_ordered_list'].split(u',')
             pairs_param_for_api = json.dumps([(value, str(index+1)) for index, value in enumerate(child_pids_ordered_list)])
-            print('pairs param: %s' % pairs_param_for_api)
             r = requests.post(settings.REORDER_URL, data={'pairs': pairs_param_for_api})
             return HttpResponseRedirect(reverse('repo_direct:display', args=(pid,)))
     bdr_item = bdrcommon.BdrItem(pid, bdr_server, identities=[settings.BDR_ADMIN])
     item_data = bdr_item.data
-    #try:
-    children = bdr_item.data['relations']['hasPart']
-    #except KeyError:
-    #    children = []
+    children = bdr_item.data['relations']['hasPart'] #[] if item has no children
     for child in children:
         child['thumbnail_url'] = '%s/%s' % (settings.THUMBNAIL_BASE_URL, child['pid'])
     return render(
