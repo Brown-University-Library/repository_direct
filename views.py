@@ -10,6 +10,7 @@ from django.shortcuts import render
 import requests
 
 from eulfedora.server import Repository
+from rdflib import URIRef
 from bdrcmodels.models import CommonMetadataDO
 from bdrcommon import common as bdrcommon
 
@@ -46,10 +47,16 @@ def display(request, pid):
     obj = repo.get_object(pid, create=False)
     if not obj.exists:
         raise Http404
+    template_info = {'obj': obj}
+    content_models = obj.get_models()
+    if URIRef('info:fedora/bdr-cmodel:implicit-set') in content_models:
+        template_info['obj_type'] = 'implicit-set'
+    else:
+        template_info['obj_type'] = ''
     return render(
         request,
         template_name='repo_direct/display.html',
-        dictionary={'obj': obj}
+        dictionary=template_info,
     )
 
 

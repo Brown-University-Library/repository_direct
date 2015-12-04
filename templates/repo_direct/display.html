@@ -1,6 +1,9 @@
 {% extends 'repo_direct/repo_direct_base.html' %}
 {% block page_title %}View or edit {{obj.pid}}{% endblock %}
 {% block content %}
+{% if obj_type == "implicit-set" %}
+<a href="{% url 'repo_direct:reorder' obj.pid %}">Reorder children</a>
+{% endif %}
 <h2>Datastreams</h2>
 <table class="table table-striped">
   <thead>
