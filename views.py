@@ -10,6 +10,7 @@ from django.shortcuts import render
 import requests
 
 from eulfedora.server import Repository
+from eulfedora.models import XmlDatastreamObject
 from rdflib import URIRef
 from bdrcmodels.models import CommonMetadataDO
 from bdrcommon import common as bdrcommon
@@ -174,7 +175,7 @@ def xml_edit(request, pid, dsid):
             return HttpResponseRedirect(reverse("repo_direct:display", args=(pid,)))
     elif request.method == 'GET':
         if dsid in obj.ds_list:
-            datastream_obj = obj.getDatastreamObject(dsid)
+            datastream_obj = obj.getDatastreamObject(dsid, XmlDatastreamObject)
             xml_content = datastream_obj.content.serialize(pretty=True)
         else:
             xml_content = "No datastream found"
