@@ -147,6 +147,12 @@ def file_edit(request, pid, dsid):
             datastream_obj.label = request.FILES['replacement_file'].name
             datastream_obj.save()
             obj.save()
+            msg = 'Saved new %s content.' % dsid
+            if dsid.lower() == 'master_tiff' or dsid.lower() == 'master':
+                msg += ' Please also update any derivative files.'
+            messages.info(request, msg)
+        else:
+            messages.error(request, 'Found no %s datastream. Please contact BDR.' % dsid)
         return HttpResponseRedirect(reverse("repo_direct:display", args=(pid,)))
     return render(
         request,
