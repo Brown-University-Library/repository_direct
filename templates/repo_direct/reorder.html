@@ -1,0 +1,42 @@
+{% extends 'repo_direct/repo_direct_base.html' %}
+{% load staticfiles %}
+{% block page_title %}Reorder children of {{pid}}{% endblock %}
+{% block content %}
+<div id="children">
+{% for child in children %}
+  <div data-id="{{child.pid}}">
+    <h4>{{child.pid}}</h4>
+    <img class="drag-handle" src={{child.thumbnail_url}} />
+    <span>Previous Order: {{child.order}}</span>
+  </div>
+{% endfor %}
+</div>
+<form action="" method="post">
+  {% csrf_token %}
+  {{form.as_p}}
+  <input type="submit" value="Submit new order"/>
+</form>
+<h4>Item Information</h4>
+<dl>
+  <dd>Title</dd><dt>{{brief.title.0}}</dt>
+  <dd>Abstract</dd><dt>{{brief.abstract.0}}</dt>
+</dl>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'repo_direct/Sortable.min.js' %}"></script>
+<script type="text/javascript">
+var children_element = document.getElementById('children');
+var sortable_element = Sortable.create(children_element, {
+    handle: ".drag-handle",
+    onUpdate: function(evt) {
+        setPidListInForm();
+    },
+}
+);
+function setPidListInForm() {
+    var ids_list = sortable_element.toArray();
+    $("#id_child_pids_ordered_list").val(ids_list.toString());
+};
+</script>
+{% endblock %}

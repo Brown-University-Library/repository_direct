@@ -18,6 +18,11 @@ urlpatterns = patterns(
         name = 'display'
     ),
     url(
+        regex= r'^(?P<pid>[^/]+)/reorder/$',
+        view = views.reorder,
+        name = 'reorder'
+    ),
+    url(
         regex= r'^(?P<pid>[^/]+)/(?P<dsid>({}))/edit/$'.format('|'.join(settings.XML_DSIDS)),
         view = views.xml_edit,
         name = 'xml-edit'

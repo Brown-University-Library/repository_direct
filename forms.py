@@ -1,6 +1,6 @@
 """Forms for repo application"""
 from django import forms
-from django.forms.widgets import RadioSelect, CheckboxSelectMultiple
+from django.forms.widgets import RadioSelect, CheckboxSelectMultiple, HiddenInput
 from django.contrib.admin.widgets import AdminFileWidget
 
 from bdrxml import irMetadata
@@ -49,3 +49,7 @@ class RightsMetadataEditForm(forms.Form):
 class IrMetadataEditForm(forms.Form):
     collections = forms.MultipleChoiceField( required=False, choices=[(0,"NULL_COLLECTION"),],
                                             widget=CheckboxSelectMultiple)
+
+
+class ReorderForm(forms.Form):
+    child_pids_ordered_list = forms.CharField(required=True, widget=HiddenInput)

@@ -1,14 +1,18 @@
-""" Create your views here."""
+import json
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import (
     HttpResponseRedirect,
+    Http404,
 )
 from django.shortcuts import render
+import requests
 
 from eulfedora.server import Repository
+from rdflib import URIRef
 from bdrcmodels.models import CommonMetadataDO
+from bdrcommon import common as bdrcommon
 
 from . import app_settings as settings
 from .models import BDR_Collection
@@ -18,11 +22,12 @@ from .forms import (
     RepoLandingForm,
     FileReplacementForm,
     EditXMLForm,
+    ReorderForm,
 )
 
-import json
 
 repo = Repository()
+bdr_server = bdrcommon.BdrServer(settings.BDR_BASE)
 
 
 def landing(request):
@@ -40,10 +45,48 @@ def landing(request):
 
 def display(request, pid):
     obj = repo.get_object(pid, create=False)
+    if not obj.exists:
+        raise Http404
+    template_info = {'obj': obj}
+    content_models = obj.get_models()
+    if URIRef('info:fedora/bdr-cmodel:implicit-set') in content_models:
+        template_info['obj_type'] = 'implicit-set'
+    else:
+        template_info['obj_type'] = ''
     return render(
         request,
         template_name='repo_direct/display.html',
-        dictionary={'obj': obj}
+        dictionary=template_info,
+    )
+
+
+@login_required
+def reorder(request, pid):
+    form = ReorderForm(request.POST or None)
+    if request.method == 'POST':
+        if form.is_valid():
+            child_pids_ordered_list = form.cleaned_data['child_pids_ordered_list'].split(u',')
+            pairs_param_for_api = json.dumps([(value, str(index+1)) for index, value in enumerate(child_pids_ordered_list)])
+            r = requests.post(settings.REORDER_URL, data={'pairs': pairs_param_for_api})
+            if r.ok:
+                messages.info(request, 'New order has been submitted (allow a bit of time for the changes to appear)')
+                return HttpResponseRedirect(reverse('repo_direct:display', args=(pid,)))
+            else:
+                raise Exception('error submitting new order')
+    bdr_item = bdrcommon.BdrItem(pid, bdr_server, identities=[settings.BDR_ADMIN])
+    item_data = bdr_item.data
+    children = bdr_item.data['relations']['hasPart'] #[] if item has no children
+    for child in children:
+        child['thumbnail_url'] = '%s/%s' % (settings.THUMBNAIL_BASE_URL, child['pid'])
+    return render(
+        request,
+        template_name='repo_direct/reorder.html',
+        dictionary={
+            'pid': pid,
+            'brief': item_data['brief'],
+            'children': children,
+            'form': form,
+        }
     )
 
 
