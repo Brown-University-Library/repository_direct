@@ -2,25 +2,27 @@
 {% load staticfiles %}
 {% block page_title %}Reorder children of {{pid}}{% endblock %}
 {% block content %}
-<div id="children">
-{% for child in children %}
-  <div data-id="{{child.pid}}">
-    <h4>{{child.pid}}</h4>
-    <img class="drag-handle" src={{child.thumbnail_url}} />
-    <span>Previous Order: {{child.order}}</span>
+<div class="row">
+  <div id="children" class="col-md-12">
+  {% for child in children %}
+    <div style="display: inline-block; border-bottom: black solid thick; padding-top: 5px;" id="{{child.pid}}" data-id="{{child.pid}}">
+      Previous: <span>{{child.order}}</span><br />
+      <img class="drag-handle" src={{child.thumbnail_url}} /><br />
+      Order: <span class="order">{{child.order}}</span>
+    </div>
+  {% endfor %}
   </div>
-{% endfor %}
+  <form action="" method="post">
+    {% csrf_token %}
+    {{form.as_p}}
+    <input type="submit" value="Submit new order"/>
+  </form>
+  <h4>Item Information</h4>
+  <dl>
+    <dd>Title</dd><dt>{{brief.title.0}}</dt>
+    <dd>Abstract</dd><dt>{{brief.abstract.0}}</dt>
+  </dl>
 </div>
-<form action="" method="post">
-  {% csrf_token %}
-  {{form.as_p}}
-  <input type="submit" value="Submit new order"/>
-</form>
-<h4>Item Information</h4>
-<dl>
-  <dd>Title</dd><dt>{{brief.title.0}}</dt>
-  <dd>Abstract</dd><dt>{{brief.abstract.0}}</dt>
-</dl>
 {% endblock %}
 
 {% block extra_js %}
@@ -30,13 +32,20 @@ var children_element = document.getElementById('children');
 var sortable_element = Sortable.create(children_element, {
     handle: ".drag-handle",
     onUpdate: function(evt) {
-        setPidListInForm();
+        handleUpdateEvents(evt);
     },
 }
 );
-function setPidListInForm() {
+function handleUpdateEvents(evt) {
     var ids_list = sortable_element.toArray();
     $("#id_child_pids_ordered_list").val(ids_list.toString());
+    var start = Math.min(evt.oldIndex, evt.newIndex);
+    var end = Math.max(evt.oldIndex, evt.newIndex);
+    for(i=start; i <= end; i++) {
+        var el = document.getElementById(ids_list[i]);
+        var order_el = el.getElementsByClassName("order")[0];
+        order_el.innerHTML = (i+1).toString();
+    }
 };
 </script>
 {% endblock %}
