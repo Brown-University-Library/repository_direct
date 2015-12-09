@@ -78,7 +78,8 @@ def reorder(request, pid):
     item_data = bdr_item.data
     children = bdr_item.data['relations']['hasPart'] #[] if item has no children
     for child in children:
-        child['thumbnail_url'] = '%s/%s' % (settings.THUMBNAIL_BASE_URL, child['pid'])
+        child['thumbnail_url'] = '%s/%s/' % (settings.THUMBNAIL_BASE_URL, child['pid'])
+        child['studio_url'] = '%s/%s/' % (settings.STUDIO_ITEM_URL, child['pid'])
     return render(
         request,
         template_name='repo_direct/reorder.html',

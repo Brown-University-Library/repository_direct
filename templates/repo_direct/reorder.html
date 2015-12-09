@@ -1,14 +1,34 @@
 {% extends 'repo_direct/repo_direct_base.html' %}
 {% load staticfiles %}
+{% block extra_css %}
+<style type="text/css" media="all">
+  .page-card{
+    display: inline-block;
+    border-bottom: black solid thick;
+    padding-top: 5px;
+  }
+  .page-changed{
+    border-bottom-color: yellow;
+  }
+</style>
+
+{% endblock %}
 {% block page_title %}Reorder children of {{pid}}{% endblock %}
 {% block content %}
 <div class="row">
   <div id="children" class="col-md-12">
   {% for child in children %}
-    <div style="display: inline-block; border-bottom: black solid thick; padding-top: 5px;" id="{{child.pid}}" data-id="{{child.pid}}">
-      Previous: <span>{{child.order}}</span><br />
-      <img class="drag-handle" src={{child.thumbnail_url}} /><br />
-      Order: <span class="order">{{child.order}}</span>
+    <div class="page-card" id="{{child.pid}}" data-id="{{child.pid}}">
+      <div>
+
+        <a href="{{child.studio_url}}" target="_blank">
+          <span class="glyphicon glyphicon-link" aria-hidden="true"></span>
+        </a>
+        Old
+        <span class="old-order label label-danger pull-right">{{child.order}}</span>
+      </div>
+      <div><img class="drag-handle" src="{{child.thumbnail_url}}" /></div>
+      <div>New<span class="new-order pull-right label label-success">{{child.order}}</span></div>
     </div>
   {% endfor %}
   </div>
@@ -43,8 +63,9 @@ function handleUpdateEvents(evt) {
     var end = Math.max(evt.oldIndex, evt.newIndex);
     for(i=start; i <= end; i++) {
         var el = document.getElementById(ids_list[i]);
-        var order_el = el.getElementsByClassName("order")[0];
-        order_el.innerHTML = (i+1).toString();
+        el.className = el.className+" page-changed";
+        var order_el = el.getElementsByClassName("new-order")[0];
+        order_el.innerHTML = "<em>" + (i+1).toString() + "</em>";
     }
 };
 </script>
