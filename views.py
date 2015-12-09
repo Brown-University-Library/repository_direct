@@ -68,7 +68,7 @@ def reorder(request, pid):
         if form.is_valid():
             child_pids_ordered_list = form.cleaned_data['child_pids_ordered_list'].split(u',')
             pairs_param_for_api = json.dumps([(value, str(index+1)) for index, value in enumerate(child_pids_ordered_list)])
-            r = requests.post(settings.REORDER_URL, data={'pairs': pairs_param_for_api})
+            r = requests.post(settings.REORDER_URL, data={'parent_pid': pid, 'child_pairs': pairs_param_for_api})
             if r.ok:
                 messages.info(request, 'New order has been submitted (allow a bit of time for the changes to appear)')
                 return HttpResponseRedirect(reverse('repo_direct:display', args=(pid,)))
