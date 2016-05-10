@@ -55,6 +55,7 @@ CONTENT_DSIDS = [
     "MASTER_TIFF", "master_tiff",
     "MASTER",
     "MASTER_COLORBAR",
+    "MASTER-COLORBAR",
 
     #Document
     "DOC",
