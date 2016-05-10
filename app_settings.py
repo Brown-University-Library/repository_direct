@@ -53,6 +53,8 @@ CONTENT_DSIDS = [
     "PNG", "png",
     "GIF", "gif",
     "MASTER_TIFF", "master_tiff",
+    "MASTER",
+    "MASTER_COLORBAR",
 
     #Document
     "DOC",
