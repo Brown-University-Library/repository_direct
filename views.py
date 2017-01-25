@@ -15,7 +15,6 @@ from lxml.etree import XMLSyntaxError
 from eulfedora.server import Repository
 from eulfedora.models import XmlDatastreamObject
 from rdflib import URIRef
-from bdrcmodels.models import CommonMetadataDO
 from bdrcommon import common as bdrcommon
 
 from . import app_settings as settings
