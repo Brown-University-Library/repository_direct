@@ -1,18 +1,20 @@
 import json
+from django.core.mail import mail_admins
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import (
     HttpResponseRedirect,
     Http404,
+    HttpResponseServerError,
 )
 from django.shortcuts import render
 import requests
 
+from lxml.etree import XMLSyntaxError
 from eulfedora.server import Repository
 from eulfedora.models import XmlDatastreamObject
 from rdflib import URIRef
-from bdrcmodels.models import CommonMetadataDO
 from bdrcommon import common as bdrcommon
 
 from . import app_settings as settings
@@ -97,9 +99,13 @@ def rights_edit(request, pid, dsid):
     form = RightsMetadataEditForm(request.POST or None)
     if form.is_valid():
         new_rights = form.build_rights()
-        obj = repo.get_object(pid, type=CommonMetadataDO)
-        obj.rightsMD.content = new_rights
-        obj.save()
+        params = {'pid': pid}
+        params['rights'] = json.dumps({'xml_data': new_rights})
+        r = requests.put(settings.ITEM_POST_URL, data=params)
+        if not r.ok:
+            err_msg = u'error saving %s content\n' % dsid
+            err_msg += u'%s - %s' % (r.status_code, r.text)
+            return HttpResponseServerError(err_msg)
         messages.info(request, 'The sharing setting for %s have changed' % (pid,), extra_tags='text-info' )
         return HttpResponseRedirect(reverse("repo_direct:display", args=(pid,)))
     return render(
@@ -119,11 +125,23 @@ def ir_edit(request, pid, dsid):
     form.fields['collections'].choices = library_collection.subfolder_choices
     if form.is_valid():
         new_collections = form.cleaned_data['collections']
-        obj = repo.get_object(pid, type=CommonMetadataDO)
-        obj.irMD.content.collection_list = new_collections
-        obj.save()
-        messages.info(request, 'The collecitons for %s have changed' % (pid,), extra_tags='text-info' )
+        if new_collections:
+            params = {'pid': pid}
+            #passing collections in the form 123#123+456#456, instead of using collection name
+            #   The API doesn't care about the name, but should have a better way of just passing
+            #   a list of IDs.
+            folders_param = '+'.join(['%s#%s' % (col, col) for col in new_collections])
+            params['ir'] = json.dumps({'parameters': {'folders': folders_param}})
+            r = requests.put(settings.ITEM_POST_URL, data=params)
+            if not r.ok:
+                err_msg = u'error saving %s content\n' % dsid
+                err_msg += u'%s - %s' % (r.status_code, r.text)
+                return HttpResponseServerError(err_msg)
+            messages.info(request, 'The collections for %s have changed' % (pid,), extra_tags='text-info' )
+        else:
+            messages.info(request, 'no collections were selected' % (pid,), extra_tags='text-info' )
         return HttpResponseRedirect(reverse("repo_direct:display", args=(pid,)))
+    messages.info(request, 'Note: this object will be removed from any current collections if you set new collections here.')
     return render(
         request,
         template_name ='repo_direct/edit.html',
@@ -173,17 +191,40 @@ def xml_edit(request, pid, dsid):
     if request.method == "POST":
         form = EditXMLForm(request.POST)
         if form.is_valid():
-            if dsid in obj.ds_list:
-                datastream_obj = obj.getDatastreamObject(dsid)
-                xml_content = u"%s" % form.cleaned_data['xml_content']
-                datastream_obj.content = xml_content.encode('utf-8')
-                datastream_obj.save()
-            obj.save()
+            xml_content = u"%s" % form.cleaned_data['xml_content']
+            if dsid in ['MODS', 'rightsMetadata', 'irMetadata']:
+                params = {'pid': pid}
+                if dsid == 'MODS':
+                    params['mods'] = json.dumps({'xml_data': xml_content})
+                elif dsid == 'rightsMetadata':
+                    params['rights'] = json.dumps({'xml_data': xml_content})
+                elif dsid == 'irMetadata':
+                    params['ir'] = json.dumps({'xml_data': xml_content})
+                r = requests.put(settings.ITEM_POST_URL, data=params)
+                if not r.ok:
+                    err_msg = u'error saving %s content\n' % dsid
+                    err_msg += u'%s - %s' % (r.status_code, r.text)
+                    return HttpResponseServerError(err_msg)
+            else:
+                if dsid in obj.ds_list:
+                    datastream_obj = obj.getDatastreamObject(dsid)
+                    datastream_obj.content = xml_content.encode('utf-8')
+                    datastream_obj.save()
+                else:
+                    return HttpResponseServerError('%s is not a valid datastream' % dsid)
+            messages.info(request, '%s datastream updated' % dsid)
             return HttpResponseRedirect(reverse("repo_direct:display", args=(pid,)))
     elif request.method == 'GET':
         if dsid in obj.ds_list:
             datastream_obj = obj.getDatastreamObject(dsid, XmlDatastreamObject)
-            xml_content = datastream_obj.content.serialize(pretty=True)
+            try:
+                xml_content = datastream_obj.content.serialize(pretty=True)
+            except XMLSyntaxError as e:
+                import traceback
+                subject = 'error parsing XML for %s %s' % (pid, dsid)
+                message = traceback.format_exc()
+                mail_admins(subject, message)
+                return HttpResponseServerError('couldn\'t load XML - may be invalid. BDR has been notified.')
         else:
             xml_content = "No datastream found"
         form = EditXMLForm({'xml_content': xml_content})
