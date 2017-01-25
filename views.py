@@ -100,9 +100,13 @@ def rights_edit(request, pid, dsid):
     form = RightsMetadataEditForm(request.POST or None)
     if form.is_valid():
         new_rights = form.build_rights()
-        obj = repo.get_object(pid, type=CommonMetadataDO)
-        obj.rightsMD.content = new_rights
-        obj.save()
+        params = {'pid': pid}
+        params['rights'] = json.dumps({'xml_data': new_rights})
+        r = requests.put(settings.ITEM_POST_URL, data=params)
+        if not r.ok:
+            err_msg = u'error saving %s content\n' % dsid
+            err_msg += u'%s - %s' % (r.status_code, r.text)
+            return HttpResponseServerError(err_msg)
         messages.info(request, 'The sharing setting for %s have changed' % (pid,), extra_tags='text-info' )
         return HttpResponseRedirect(reverse("repo_direct:display", args=(pid,)))
     return render(
@@ -122,11 +126,23 @@ def ir_edit(request, pid, dsid):
     form.fields['collections'].choices = library_collection.subfolder_choices
     if form.is_valid():
         new_collections = form.cleaned_data['collections']
-        obj = repo.get_object(pid, type=CommonMetadataDO)
-        obj.irMD.content.collection_list = new_collections
-        obj.save()
-        messages.info(request, 'The collecitons for %s have changed' % (pid,), extra_tags='text-info' )
+        if new_collections:
+            params = {'pid': pid}
+            #passing collections in the form 123#123+456#456, instead of using collection name
+            #   The API doesn't care about the name, but should have a better way of just passing
+            #   a list of IDs.
+            folders_param = '+'.join(['%s#%s' % (col, col) for col in new_collections])
+            params['ir'] = json.dumps({'parameters': {'folders': folders_param}})
+            r = requests.put(settings.ITEM_POST_URL, data=params)
+            if not r.ok:
+                err_msg = u'error saving %s content\n' % dsid
+                err_msg += u'%s - %s' % (r.status_code, r.text)
+                return HttpResponseServerError(err_msg)
+            messages.info(request, 'The collections for %s have changed' % (pid,), extra_tags='text-info' )
+        else:
+            messages.info(request, 'no collections were selected' % (pid,), extra_tags='text-info' )
         return HttpResponseRedirect(reverse("repo_direct:display", args=(pid,)))
+    messages.info(request, 'Note: this object will be removed from any current collections if you set new collections here.')
     return render(
         request,
         template_name ='repo_direct/edit.html',
