@@ -1,14 +1,17 @@
 import json
+from django.core.mail import mail_admins
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import (
     HttpResponseRedirect,
     Http404,
+    HttpResponseServerError,
 )
 from django.shortcuts import render
 import requests
 
+from lxml.etree import XMLSyntaxError
 from eulfedora.server import Repository
 from eulfedora.models import XmlDatastreamObject
 from rdflib import URIRef
@@ -183,7 +186,14 @@ def xml_edit(request, pid, dsid):
     elif request.method == 'GET':
         if dsid in obj.ds_list:
             datastream_obj = obj.getDatastreamObject(dsid, XmlDatastreamObject)
-            xml_content = datastream_obj.content.serialize(pretty=True)
+            try:
+                xml_content = datastream_obj.content.serialize(pretty=True)
+            except XMLSyntaxError as e:
+                import traceback
+                subject = 'error parsing XML for %s %s' % (pid, dsid)
+                message = traceback.format_exc()
+                mail_admins(subject, message)
+                return HttpResponseServerError('couldn\'t load XML - may be invalid. BDR has been notified.')
         else:
             xml_content = "No datastream found"
         form = EditXMLForm({'xml_content': xml_content})
