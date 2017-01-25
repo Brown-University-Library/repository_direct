@@ -33,6 +33,11 @@ urlpatterns = patterns(
         name = 'ir-edit'
     ),
     url(
+        regex= r'^(?P<pid>[^/]+)/(?P<dsid>(rightsMetadata))/edit/xml/$',
+        view = views.xml_edit,
+        name = 'rights-edit-xml'
+    ),
+    url(
         regex= r'^(?P<pid>[^/]+)/(?P<dsid>(rightsMetadata))/edit/$',
         view = views.rights_edit,
         name = 'rights-edit'
