@@ -176,12 +176,28 @@ def xml_edit(request, pid, dsid):
     if request.method == "POST":
         form = EditXMLForm(request.POST)
         if form.is_valid():
-            if dsid in obj.ds_list:
-                datastream_obj = obj.getDatastreamObject(dsid)
-                xml_content = u"%s" % form.cleaned_data['xml_content']
-                datastream_obj.content = xml_content.encode('utf-8')
-                datastream_obj.save()
-            obj.save()
+            xml_content = u"%s" % form.cleaned_data['xml_content']
+            if dsid in ['MODS', 'rightsMetadata', 'irMetadata']:
+                params = {'pid': pid}
+                if dsid == 'MODS':
+                    params['mods'] = json.dumps({'xml_data': xml_content})
+                elif dsid == 'rightsMetadata':
+                    params['rights'] = json.dumps({'xml_data': xml_content})
+                elif dsid == 'irMetadata':
+                    params['ir'] = json.dumps({'xml_data': xml_content})
+                r = requests.put(settings.ITEM_POST_URL, data=params)
+                if not r.ok:
+                    err_msg = u'error saving %s content\n' % dsid
+                    err_msg += u'%s - %s' % (r.status_code, r.text)
+                    return HttpResponseServerError(err_msg)
+            else:
+                if dsid in obj.ds_list:
+                    datastream_obj = obj.getDatastreamObject(dsid)
+                    datastream_obj.content = xml_content.encode('utf-8')
+                    datastream_obj.save()
+                else:
+                    return HttpResponseServerError('%s is not a valid datastream' % dsid)
+            messages.info(request, '%s datastream updated' % dsid)
             return HttpResponseRedirect(reverse("repo_direct:display", args=(pid,)))
     elif request.method == 'GET':
         if dsid in obj.ds_list:

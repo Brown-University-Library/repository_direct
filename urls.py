@@ -28,6 +28,11 @@ urlpatterns = patterns(
         name = 'xml-edit'
     ),
     url(
+        regex= r'^(?P<pid>[^/]+)/(?P<dsid>(irMetadata))/edit/xml/$',
+        view = views.xml_edit,
+        name = 'ir-edit-xml'
+    ),
+    url(
         regex= r'^(?P<pid>[^/]+)/(?P<dsid>(irMetadata))/edit/$',
         view = views.ir_edit,
         name = 'ir-edit'
