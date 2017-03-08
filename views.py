@@ -100,7 +100,7 @@ def rights_edit(request, pid, dsid):
     if form.is_valid():
         new_rights = form.build_rights()
         params = {'pid': pid}
-        params['rights'] = json.dumps({'xml_data': new_rights})
+        params['rights'] = json.dumps({'xml_data': new_rights.serialize()})
         r = requests.put(settings.ITEM_POST_URL, data=params)
         if not r.ok:
             err_msg = u'error saving %s content\n' % dsid
