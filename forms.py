@@ -8,10 +8,15 @@ from bdrxml.rights import RightsBuilder
 from django_ace import AceWidget
 from eulxml.xmlmap.dc import DublinCore
 from eulxml.forms import XmlObjectForm
+from django_select2 import forms as s2forms
 
+from . import app_settings as settings
 from .models import (
     BDR_Collection,
 )
+
+DEFAULT_RIGHTS_CHOICES = zip(settings.DEFAULT_RIGHTS_CHOICES,
+        settings.DEFAULT_RIGHTS_CHOICES)
 
 
 class FileReplacementForm( forms.Form ):
@@ -24,16 +29,42 @@ class RepoLandingForm(forms.Form):
     pid = forms.CharField(error_messages={'required': 'Please enter a pid'})
 
 class RightsMetadataEditForm(forms.Form):
-    discover_and_read = forms.CharField(required=False)
-    discover_only = forms.CharField(required=False)
-    read_only = forms.CharField(required=False)
-    edit_rights = forms.CharField(required=False)
-    owners = forms.CharField(required=False, initial="BROWN:DEPARTMENT:LIBRARY:REPOSITORY")
-
-    def __init__(self, *args, **kwargs):
-        super(RightsMetadataEditForm, self).__init__(*args, **kwargs)
-        for myField in self.fields:
-            self.fields[myField].widget.attrs['class'] = "select_rights"
+    discover_and_read = forms.MultipleChoiceField(
+            required=False,
+            widget=s2forms.Select2TagWidget(
+                attrs={'data-minimum-input-length':0}
+            ),
+            choices = DEFAULT_RIGHTS_CHOICES,
+    )
+    discover_only = forms.MultipleChoiceField(
+            required=False,
+            widget=s2forms.Select2TagWidget(
+                attrs={'data-minimum-input-length':0}
+            ),
+            choices = DEFAULT_RIGHTS_CHOICES,
+    )
+    read_only = forms.MultipleChoiceField(
+            required=False,
+            widget=s2forms.Select2TagWidget(
+                attrs={'data-minimum-input-length':0}
+            ),
+            choices = DEFAULT_RIGHTS_CHOICES,
+    )
+    edit_rights = forms.MultipleChoiceField(
+            required=False,
+            widget=s2forms.Select2TagWidget(
+                attrs={'data-minimum-input-length':0}
+            ),
+            choices = DEFAULT_RIGHTS_CHOICES,
+    )
+    owners = forms.MultipleChoiceField(
+            required=False,
+            widget=s2forms.Select2TagWidget(
+                attrs={'data-minimum-input-length':0}
+            ),
+            choices = DEFAULT_RIGHTS_CHOICES,
+            initial=DEFAULT_RIGHTS_CHOICES[-1]
+    )
 
     def build_rights(self):
         rights_builder = RightsBuilder()
