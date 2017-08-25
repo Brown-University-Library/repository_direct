@@ -1,35 +1,18 @@
 {% extends 'repo_direct/repo_direct_base.html' %}
-{% load django_select2_tags %}
-{% block extra_js %}
-{% import_django_select2_js_css %}
-  <script id="script_select_rights">
-    $(document).ready(function () {
-      $(".select_rights").select2({
-        tags:{{rights_choices|safe}},
-        tokenSeparators: [","],
-        placeholder: "Select or Type users/groups for this permission",
-        allowClear: true,
-        width: '50%',
-        dropdownAutoWidth: true
-      });
-    });
-  </script>
-{% endblock %}
+{% load crispy_forms_tags %}
 
 {% block title %}Edit Rights{% endblock %}
-{% block page_title %}
-Edit Rights for {{pid}}
-{% endblock %}
+{% block page_title %}Edit Rights for {{pid}}{% endblock %}
 
 
 {% block content %}
-  <form method="post" class='form-horizontal'>
-    {%csrf_token%}
-    <ul class='unstyled'>
-    {{form.as_ul}}
-    </ul>
-    <input type="submit" value="Save" class="btn btn-primary"/>
-  </form>
-
+  {% crispy form %}
 {% endblock %}
+
+{% block extra_css %}
+    {{ form.media.css }}
+{% endblock extra_css %}
+{% block extra_js %}
+    {{ form.media.js }}
+{% endblock extra_js %}
 
