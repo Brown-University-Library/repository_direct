@@ -15,7 +15,7 @@ from lxml.etree import XMLSyntaxError
 from eulfedora.server import Repository
 from eulfedora.models import XmlDatastreamObject
 from rdflib import URIRef
-from bdrcommon import common as bdrcommon
+from bdrcommon.resources import BDRResources
 
 from . import app_settings as settings
 from .models import BDR_Collection
@@ -30,7 +30,7 @@ from .forms import (
 
 
 repo = Repository()
-bdr_server = bdrcommon.BdrServer(settings.BDR_BASE)
+bdr_server = BDRResources(settings.BDR_BASE)
 
 
 def landing(request):
@@ -76,7 +76,7 @@ def reorder(request, pid):
                 return HttpResponseRedirect(reverse('repo_direct:display', args=(pid,)))
             else:
                 raise Exception('error submitting new order')
-    bdr_item = bdrcommon.BdrItem(pid, bdr_server, identities=[settings.BDR_ADMIN])
+    bdr_item = bdr_server.item.get(pid, identities=[settings.BDR_ADMIN])
     item_data = bdr_item.data
     children = bdr_item.data['relations']['hasPart'] #[] if item has no children
     for child in children:
@@ -110,12 +110,11 @@ def rights_edit(request, pid, dsid):
         return HttpResponseRedirect(reverse("repo_direct:display", args=(pid,)))
     return render(
         request,
-        template_name='repo_direct/rights_form.html',
+        template_name='repo_direct/edit.html',
         dictionary={
             'form': form,
-            'rights_choices': json.dumps(settings.DEFAULT_RIGHTS_CHOICES),
             'pid': pid,
-            'dsid': dsid,
+            'dsid': "rightsMetadata"
         }
     )
 

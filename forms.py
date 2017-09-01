@@ -90,8 +90,14 @@ class IrMetadataEditForm(forms.Form):
     collections = forms.MultipleChoiceField(
             required=False,
             choices=[(0,"NULL_COLLECTION"),],
-            widget=CheckboxSelectMultiple
+            widget=s2forms.Select2MultipleWidget
     )
+
+    def __init__(self, *args, **kwargs):
+        super(IrMetadataEditForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_class = 'col-md-6 col-md-offset-3'
+        self.helper.add_input(Submit('submit', 'Save'))
 
 class ReorderForm(forms.Form):
     child_pids_ordered_list = forms.CharField(required=True, widget=HiddenInput)
