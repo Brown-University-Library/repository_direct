@@ -26,6 +26,12 @@ class FileReplacementForm( forms.Form ):
 class EditXMLForm( forms.Form ):
     xml_content = forms.CharField(widget=AceWidget(mode='xml', width="100%", height="500px"))
 
+    def __init__(self, *args, **kwargs):
+        super(EditXMLForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_class = 'col-md-6 col-md-offset-3'
+        self.helper.add_input(Submit('submit', 'Save'))
+
 
 class RepoLandingForm(forms.Form):
     pid = forms.CharField(error_messages={'required': 'Please enter a pid'})

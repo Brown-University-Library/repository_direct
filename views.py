@@ -114,7 +114,7 @@ def rights_edit(request, pid, dsid):
         dictionary={
             'form': form,
             'pid': pid,
-            'dsid': "rightsMetadata"
+            'dsid': dsid
         }
     )
 
@@ -147,7 +147,7 @@ def ir_edit(request, pid, dsid):
         dictionary={
             'form': form,
             'pid': pid,
-            'dsid': "irMetadata"
+            'dsid': dsid
         }
     )
 
@@ -229,7 +229,7 @@ def xml_edit(request, pid, dsid):
         form = EditXMLForm({'xml_content': xml_content})
     return render(
         request,
-        template_name='repo_direct/xml_edit.html',
+        template_name='repo_direct/edit.html',
         dictionary={
             'form': form,
             'pid': pid,
