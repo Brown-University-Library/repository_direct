@@ -1,10 +1,15 @@
 {% extends 'repo_direct/repo_direct_base.html' %}
+{% load crispy_forms_tags %}
 {% block page_title %}Edit {{ pid }}'s {{dsid}} datastream {% endblock %}
+
 {% block content %}
-<form method="post">
-  {%csrf_token%}
-  <table>{{form.as_table}}</table>
-  <input type="submit" value="Save"/>
-</form>
+  {% crispy form %}
 {% endblock %}
+
+{% block extra_css %}
+    {{ form.media.css }}
+{% endblock extra_css %}
+{% block extra_js %}
+    {{ form.media.js }}
+{% endblock extra_js %}
 

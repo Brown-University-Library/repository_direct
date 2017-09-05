@@ -23,8 +23,18 @@ class FileReplacementForm( forms.Form ):
     replacement_file = forms.FileField(label="File", widget=AdminFileWidget)
 
 
-class EditXMLForm( forms.Form ):
+class CommonFormHelperMixin(object):
+    @property
+    def helper(self):
+        if not hasattr(self, '_helper'):
+            self._helper = FormHelper()
+            self._helper.form_class = 'col-md-6 col-md-offset-3'
+            self._helper.add_input(Submit('submit', 'Save'))
+        return self._helper
+
+class EditXMLForm( forms.Form , CommonFormHelperMixin):
     xml_content = forms.CharField(widget=AceWidget(mode='xml', width="100%", height="500px"))
+
 
 
 class RepoLandingForm(forms.Form):
@@ -41,7 +51,7 @@ class RightsSelectWidget(RightsSelectWidgetMixin, s2forms.Select2TagWidget):
     pass
 
 
-class RightsMetadataEditForm(forms.Form):
+class RightsMetadataEditForm(forms.Form, CommonFormHelperMixin):
     discover_and_read = forms.MultipleChoiceField(
             required=False,
             widget=RightsSelectWidget,
@@ -69,12 +79,6 @@ class RightsMetadataEditForm(forms.Form):
             initial= BDR_ADMIN
     )
 
-    def __init__(self, *args, **kwargs):
-        super(RightsMetadataEditForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_class = 'col-md-6 col-md-offset-3'
-        self.helper.add_input(Submit('submit', 'Save'))
-
     def build_rights(self):
         rights_builder = RightsBuilder()
         [rights_builder.addReader(identity) for identity in self.cleaned_data['discover_and_read'].split(',') if identity]
@@ -86,12 +90,13 @@ class RightsMetadataEditForm(forms.Form):
         return rights_builder.build()
 
 
-class IrMetadataEditForm(forms.Form):
+class IrMetadataEditForm(forms.Form, CommonFormHelperMixin):
     collections = forms.MultipleChoiceField(
             required=False,
             choices=[(0,"NULL_COLLECTION"),],
-            widget=CheckboxSelectMultiple
+            widget=s2forms.Select2MultipleWidget
     )
+
 
 class ReorderForm(forms.Form):
     child_pids_ordered_list = forms.CharField(required=True, widget=HiddenInput)
