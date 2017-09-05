@@ -1,16 +1,33 @@
-"""
-This file demonstrates writing tests using the unittest module. These will pass
-when you run "manage.py test".
-
-Replace this with more appropriate tests for your application.
-"""
-
-from django.test import TestCase
+from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
+from django.test import Client, TestCase
+from . import app_settings as settings
 
 
-class SimpleTest(TestCase):
-    def test_basic_addition(self):
-        """
-        Tests that 1 + 1 always equals 2.
-        """
-        self.assertEqual(1 + 1, 2)
+def get_super_user_client():
+    super_user = User.objects.create_superuser('superuser', 'test@example.com', 'pw')
+    super_user_client = Client()
+    super_user_client.login(username='superuser', password='pw')
+    return super_user_client
+
+
+class DatastreamEditorTest(TestCase):
+
+    def _common_edit_test(self, reverse_name, dsid):
+        client = get_super_user_client()
+        r = client.get(
+                reverse("repo_direct:{}".format(reverse_name),
+                    kwargs={
+                        'pid': 'test:1234',
+                        'dsid': dsid
+                        }
+                )
+        )
+        self.assertContains(r, "Edit test:1234's {} datastream".format(dsid))
+
+    def test_rights_edit(self):
+        self._common_edit_test('rights-edit', 'rightsMetadata')
+
+    def test_ir_metadata_edit(self):
+        self._common_edit_test('ir-edit', 'irMetadata')
+
