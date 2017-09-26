@@ -81,12 +81,12 @@ class RightsMetadataEditForm(forms.Form, CommonFormHelperMixin):
 
     def build_rights(self):
         rights_builder = RightsBuilder()
-        [rights_builder.addReader(identity) for identity in self.cleaned_data['discover_and_read'].split(',') if identity]
-        [rights_builder.addDiscoverer(identity) for identity in self.cleaned_data['discover_and_read'].split(',') if identity]
-        [rights_builder.addReader(identity) for identity in self.cleaned_data['read_only'].split(',') if identity]
-        [rights_builder.addDiscoverer(identity) for identity in self.cleaned_data['discover_only'].strip().split(',') if identity]
-        [rights_builder.addEditor(identity) for identity in self.cleaned_data['edit_rights'].strip().split(',') if identity]
-        [rights_builder.addOwner(identity) for identity in self.cleaned_data['owners'].strip().split(',') if identity]
+        [rights_builder.addReader(identity) for identity in self.cleaned_data['discover_and_read']]
+        [rights_builder.addDiscoverer(identity) for identity in self.cleaned_data['discover_and_read']]
+        [rights_builder.addReader(identity) for identity in self.cleaned_data['read_only']]
+        [rights_builder.addDiscoverer(identity) for identity in self.cleaned_data['discover_only']]
+        [rights_builder.addEditor(identity) for identity in self.cleaned_data['edit_rights']]
+        [rights_builder.addOwner(identity) for identity in self.cleaned_data['owners']]
         return rights_builder.build()
 
 
