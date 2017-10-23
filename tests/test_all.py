@@ -4,7 +4,7 @@ from django.test import Client, TestCase
 import responses
 from .. import app_settings as settings
 from ..forms import RightsMetadataEditForm
-import test_data
+from workshop_common import test_data
 
 
 class AccessTest(TestCase):
