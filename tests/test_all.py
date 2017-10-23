@@ -1,9 +1,10 @@
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import Client, TestCase
+import responses
 from .. import app_settings as settings
-import unittest
 from ..forms import RightsMetadataEditForm
+import test_data
 
 
 def get_super_user_client():
@@ -68,6 +69,12 @@ class DatastreamEditorTest(TestCase):
     def test_rights_edit(self):
         self._common_edit_test('rights-edit', 'rightsMetadata')
 
+    @responses.activate
     def test_ir_metadata_edit(self):
+        responses.add(responses.GET, 'https://localhost/api/collections/468/',
+                      body=test_data.LIB_API_DATA,
+                      status=200,
+                      content_type='application/json'
+                    )
         self._common_edit_test('ir-edit', 'irMetadata')
 
