@@ -4,19 +4,33 @@ from django.test import Client, TestCase
 import responses
 from .. import app_settings as settings
 from ..forms import RightsMetadataEditForm
-import test_data
+from workshop_common import test_data
 
 
-def get_super_user_client():
-    super_user = User.objects.create_superuser('superuser', 'test@example.com', 'pw')
-    super_user_client = Client()
-    super_user_client.login(username='superuser', password='pw')
-    return super_user_client
+class AccessTest(TestCase):
+
+    def test_landing(self):
+        #test no Shib info, completely anonymous
+        url = reverse('repo_direct:landing')
+        r = self.client.get(url)
+        self.assertRedirects(r, '%s?next=%s' % (reverse('login'), url))
+        #test with Shib info, but no User in DB
+        r = self.client.get(url, **{
+                                'REMOTE_USER': 'someone@brown.edu',
+                                'Shibboleth-eppn': 'someone@brown.edu'})
+        self.assertRedirects(r, '%s?next=%s' % (reverse('login'), url))
+        #test valid user
+        User.objects.create_user(username='x@brown.edu')
+        r = self.client.get(url, **{
+                                'REMOTE_USER': 'x@brown.edu',
+                                'Shibboleth-eppn': 'x@brown.edu'})
+        self.assertContains(r, 'Please Enter a PID')
 
 
 class RightsFormTest(TestCase):
+
     def setUp(self):
-        self.client = get_super_user_client()
+        User.objects.create_user(username='x@brown.edu')
         self.rights_edit_url = reverse("repo_direct:{}".format('rights-edit'),
                     kwargs={
                         'pid': 'test:1234',
@@ -25,7 +39,10 @@ class RightsFormTest(TestCase):
                 )
 
     def test_rights_editing_uses_rights_form(self):
-        response = self.client.get(self.rights_edit_url)
+        response = self.client.get(self.rights_edit_url,
+                                **{
+                                    'REMOTE_USER': 'x@brown.edu',
+                                    'Shibboleth-eppn': 'x@brown.edu'})
         self.assertIsInstance(response.context['form'], RightsMetadataEditForm)
 
     def test_rights_editing_form_post_valid_data(self):
@@ -54,15 +71,21 @@ class RightsFormTest(TestCase):
 
 class DatastreamEditorTest(TestCase):
 
+    def setUp(self):
+        User.objects.create_user(username='x@brown.edu')
+
     def _common_edit_test(self, reverse_name, dsid):
-        client = get_super_user_client()
-        r = client.get(
+        r = self.client.get(
                 reverse("repo_direct:{}".format(reverse_name),
                     kwargs={
                         'pid': 'test:1234',
                         'dsid': dsid
                         }
-                )
+                ),
+                **{
+                    'REMOTE_USER': 'x@brown.edu',
+                    'Shibboleth-eppn': 'x@brown.edu'
+                }
         )
         self.assertContains(r, "Edit test:1234's {} datastream".format(dsid))
 
