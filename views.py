@@ -191,7 +191,7 @@ def xml_edit(request, pid, dsid):
         form = EditXMLForm(request.POST)
         if form.is_valid():
             xml_content = u"%s" % form.cleaned_data['xml_content']
-            if dsid in ['MODS', 'rightsMetadata', 'irMetadata']:
+            if dsid in ['MODS', 'rightsMetadata', 'irMetadata', 'RELS-INT', 'RELS-EXT']:
                 params = {'pid': pid}
                 if dsid == 'MODS':
                     params['mods'] = json.dumps({'xml_data': xml_content})
@@ -199,6 +199,10 @@ def xml_edit(request, pid, dsid):
                     params['rights'] = json.dumps({'xml_data': xml_content})
                 elif dsid == 'irMetadata':
                     params['ir'] = json.dumps({'xml_data': xml_content})
+                elif dsid == 'RELS-EXT':
+                    params['rels'] = json.dumps({'xml_data': xml_content})
+                elif dsid == 'RELS-INT':
+                    params['rels_int'] = json.dumps({'xml_data': xml_content})
                 r = requests.put(settings.ITEM_POST_URL, data=params)
                 if not r.ok:
                     err_msg = u'error saving %s content\n' % dsid
