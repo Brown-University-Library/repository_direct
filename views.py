@@ -158,13 +158,17 @@ def file_edit(request, pid, dsid):
     if form.is_valid():
         obj = repo.get_object(pid,create=False)
         if dsid in obj.ds_list:
-            datastream_obj = obj.getDatastreamObject(dsid)
-            datastream_obj.content = request.FILES['replacement_file'].read()
-            # use the browser-supplied mimetype for now, even though we know this is unreliable
-            datastream_obj.mimetype = request.FILES['replacement_file'].content_type
-            datastream_obj.label = request.FILES['replacement_file'].name
-            datastream_obj.save()
-            obj.save()
+            uploaded_file = request.FILES['replacement_file']
+            file_name = uploaded_file.name
+            params = {'pid': pid}
+            params['content_streams'] = json.dumps(
+                    [{'dsID': dsid, 'file_name': file_name}])
+            params['overwrite_content'] = 'yes'
+            r = requests.put(settings.ITEM_POST_URL, data=params, files={file_name: uploaded_file})
+            if not r.ok:
+                err_msg = u'error saving %s content\n' % dsid
+                err_msg += u'%s - %s' % (r.status_code, r.text)
+                return HttpResponseServerError(err_msg)
             msg = 'Saved new %s content.' % dsid
             if dsid.lower() == 'master_tiff' or dsid.lower() == 'master':
                 msg += ' Please also update any derivative files.'
