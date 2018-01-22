@@ -14,7 +14,7 @@
     </tr>
   </thead>
   <tbody>
-    {% for k,v in obj.ds_list.items %}
+    {% for k in datastreams %}
     <tr>
       <th>{{forloop.counter}}</th>
       <td>{{k}}</td>
@@ -22,6 +22,13 @@
         <a class="btn btn-primary btn-small" href="{{k}}/">View</a>
         <a class="btn btn-success btn-small" href="{{k}}/edit/">Edit</a>
       </td>
+    </tr>
+    {% endfor %}
+    {% for k in deleted_datastreams %}
+    <tr>
+      <th>{{forloop.counter}}</th>
+      <td>{{k}}</td>
+      <td>{{k}} deleted</td>
     </tr>
     {% endfor %}
   </tbody>

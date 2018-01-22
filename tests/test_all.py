@@ -27,6 +27,78 @@ class AccessTest(TestCase):
         self.assertContains(r, 'Please Enter a PID')
 
 
+class DisplayTest(TestCase):
+
+    @responses.activate
+    def test_get(self):
+        responses.add(responses.GET, 'http://localhost/fedora/objects/test:123',
+                      body=test_data.OBJECT_XML,
+                      status=200,
+                      content_type='text/xml'
+                    )
+        responses.add(responses.GET, 'http://localhost/fedora/objects/test:123/datastreams',
+                      body=test_data.DATASTREAMS_XML,
+                      status=200,
+                      content_type='text/xml'
+                    )
+        for ds_id in ['DC', 'RELS-EXT', 'rightsMetadata', 'MODS']:
+            responses.add(responses.GET, 'http://localhost/fedora/objects/test:123/datastreams/%s' % ds_id,
+                          body=test_data.DS_PROFILE_PATTERN.format(ds_id=ds_id, ds_state='A'),
+                          status=200,
+                          content_type='text/xml'
+                        )
+        responses.add(responses.GET, 'http://localhost/fedora/objects/test:123/datastreams/RELS-EXT/content',
+                      body=test_data.RELS_EXT_XML,
+                      status=200,
+                      content_type='text/xml'
+                    )
+        User.objects.create_user(username='x@brown.edu')
+        url = reverse('repo_direct:display', kwargs={'pid': 'test:123'})
+        r = self.client.get(url, **{
+                                'REMOTE_USER': 'x@brown.edu',
+                                'Shibboleth-eppn': 'x@brown.edu'})
+        self.assertEqual(r.status_code, 200)
+        self.assertInHTML(u'<a class="btn btn-primary btn-small" href="rightsMetadata/">View</a>', r.content.decode('utf8'))
+        self.assertInHTML(u'<a class="btn btn-success btn-small" href="MODS/edit/">Edit</a>', r.content.decode('utf8'))
+
+    @responses.activate
+    def test_get_deleted_mods(self):
+        responses.add(responses.GET, 'http://localhost/fedora/objects/test:123',
+                      body=test_data.OBJECT_XML,
+                      status=200,
+                      content_type='text/xml'
+                    )
+        responses.add(responses.GET, 'http://localhost/fedora/objects/test:123/datastreams',
+                      body=test_data.DATASTREAMS_XML,
+                      status=200,
+                      content_type='text/xml'
+                    )
+        for ds_id in ['DC', 'RELS-EXT', 'rightsMetadata']:
+            responses.add(responses.GET, 'http://localhost/fedora/objects/test:123/datastreams/%s' % ds_id,
+                          body=test_data.DS_PROFILE_PATTERN.format(ds_id=ds_id, ds_state='A'),
+                          status=200,
+                          content_type='text/xml'
+                        )
+        responses.add(responses.GET, 'http://localhost/fedora/objects/test:123/datastreams/MODS',
+                      body=test_data.DS_PROFILE_PATTERN.format(ds_id='MODS', ds_state='D'),
+                      status=200,
+                      content_type='text/xml'
+                    )
+        responses.add(responses.GET, 'http://localhost/fedora/objects/test:123/datastreams/RELS-EXT/content',
+                      body=test_data.RELS_EXT_XML,
+                      status=200,
+                      content_type='text/xml'
+                    )
+        User.objects.create_user(username='x@brown.edu')
+        url = reverse('repo_direct:display', kwargs={'pid': 'test:123'})
+        r = self.client.get(url, **{
+                                'REMOTE_USER': 'x@brown.edu',
+                                'Shibboleth-eppn': 'x@brown.edu'})
+        self.assertEqual(r.status_code, 200)
+        self.assertInHTML(u'<a class="btn btn-primary btn-small" href="rightsMetadata/">View</a>', r.content.decode('utf8'))
+        self.assertInHTML(u'<td>MODS deleted</td>', r.content.decode('utf8'))
+
+
 class RightsFormTest(TestCase):
 
     def setUp(self):

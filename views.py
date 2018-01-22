@@ -56,6 +56,10 @@ def display(request, pid):
         template_info['obj_type'] = 'implicit-set'
     else:
         template_info['obj_type'] = ''
+    datastreams = [ds for ds in obj.ds_list.keys() if obj.getDatastreamObject(ds).state == 'A']
+    deleted_datastreams = [ds for ds in obj.ds_list.keys() if obj.getDatastreamObject(ds).state == 'D']
+    template_info['datastreams'] = datastreams
+    template_info['deleted_datastreams'] = deleted_datastreams
     return render(
         request,
         template_name='repo_direct/display.html',
