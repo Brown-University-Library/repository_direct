@@ -42,7 +42,7 @@ def landing(request):
     return render(
         request,
         template_name='repo_direct/landing.html',
-        dictionary={'form': form}
+        context={'form': form}
     )
 
 
@@ -63,7 +63,7 @@ def display(request, pid):
     return render(
         request,
         template_name='repo_direct/display.html',
-        dictionary=template_info,
+        context=template_info,
     )
 
 
@@ -89,7 +89,7 @@ def reorder(request, pid):
     return render(
         request,
         template_name='repo_direct/reorder.html',
-        dictionary={
+        context={
             'pid': pid,
             'brief': item_data['brief'],
             'children': children,
@@ -115,7 +115,7 @@ def rights_edit(request, pid, dsid):
     return render(
         request,
         template_name='repo_direct/edit.html',
-        dictionary={
+        context={
             'form': form,
             'pid': pid,
             'dsid': dsid
@@ -148,7 +148,7 @@ def ir_edit(request, pid, dsid):
     return render(
         request,
         template_name ='repo_direct/edit.html',
-        dictionary={
+        context={
             'form': form,
             'pid': pid,
             'dsid': dsid
@@ -183,7 +183,7 @@ def file_edit(request, pid, dsid):
     return render(
         request,
         template_name='repo_direct/file_edit.html',
-        dictionary={
+        context={
             'form': form,
             'dsid': dsid,
             'pid': pid,
@@ -242,7 +242,7 @@ def xml_edit(request, pid, dsid):
     return render(
         request,
         template_name='repo_direct/edit.html',
-        dictionary={
+        context={
             'form': form,
             'pid': pid,
             'dsid': dsid
