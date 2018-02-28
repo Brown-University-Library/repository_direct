@@ -1,12 +1,11 @@
-from django.conf.urls import url, patterns
+from django.conf.urls import url
 from eulfedora import views as eulviews
 from . import app_settings as settings
 from . import views
 
 
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(
         regex= r'^$',
         view = views.landing,
@@ -63,4 +62,5 @@ urlpatterns = patterns(
         name = 'raw-datastream',
     ),
 
-)
+]
+
