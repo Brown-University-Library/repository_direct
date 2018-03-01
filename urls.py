@@ -4,7 +4,7 @@ from . import app_settings as settings
 from . import views
 
 
-
+app_name = 'repo_direct'
 urlpatterns = [
     url(
         regex= r'^$',
