@@ -16,8 +16,6 @@ RIGHTS_CHOICES = zip(
         settings.DEFAULT_RIGHTS_CHOICES
     )
 
-BDR_ADMIN=RIGHTS_CHOICES[-1]
-
 
 class FileReplacementForm( forms.Form ):
     replacement_file = forms.FileField(label="File", widget=AdminFileWidget)
@@ -75,8 +73,8 @@ class RightsMetadataEditForm(forms.Form, CommonFormHelperMixin):
     owners = forms.MultipleChoiceField(
             required=False,
             widget=RightsSelectWidget,
-            choices = RIGHTS_CHOICES,
-            initial= BDR_ADMIN
+            choices=RIGHTS_CHOICES,
+            initial=settings.BDR_ADMIN
     )
 
     def build_rights(self):
