@@ -189,3 +189,30 @@ class DatastreamEditorTest(TestCase):
                     )
         self._common_edit_test('ir-edit', 'irMetadata')
 
+
+class RightsEditXmlTest(TestCase):
+
+    @responses.activate
+    def test_get(self):
+        responses.add(responses.GET, 'http://localhost/fedora/objects/test:123/datastreams',
+                      body=test_data.DATASTREAMS_XML,
+                      status=200,
+                      content_type='text/xml'
+                    )
+        responses.add(responses.GET, 'http://localhost/fedora/objects/test:123/datastreams/rightsMetadata/content',
+                      body=test_data.RIGHTS_XML,
+                      status=200,
+                      content_type='text/xml'
+                    )
+        User.objects.create_user(username='x@brown.edu')
+        url = reverse('repo_direct:rights-edit-xml',
+                kwargs={'pid': 'test:123', 'dsid': 'rightsMetadata'})
+        r = self.client.get(url,
+                **{
+                    'REMOTE_USER': 'x@brown.edu',
+                    'Shibboleth-eppn': 'x@brown.edu'
+                }
+        )
+        self.assertContains(r, "Edit test:123's rightsMetadata datastream")
+        self.assertContains(r, 'Xml content')
+

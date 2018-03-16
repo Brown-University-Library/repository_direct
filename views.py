@@ -237,7 +237,7 @@ def xml_edit(request, pid, dsid):
                 mail_admins(subject, message)
                 return HttpResponseServerError('couldn\'t load XML - may be invalid. BDR has been notified.')
         else:
-            xml_content = "No datastream found"
+            xml_content = 'No datastream found'
         form = EditXMLForm({'xml_content': xml_content})
     return render(
         request,
