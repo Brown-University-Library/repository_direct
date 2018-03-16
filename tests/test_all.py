@@ -1,3 +1,4 @@
+import json
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import Client, TestCase
@@ -103,7 +104,7 @@ class RightsFormTest(TestCase):
 
     def setUp(self):
         User.objects.create_user(username='x@brown.edu')
-        self.rights_edit_url = reverse("repo_direct:{}".format('rights-edit'),
+        self.rights_edit_url = reverse('repo_direct:rights-edit',
                     kwargs={
                         'pid': 'test:1234',
                         'dsid': 'rightsMetadata'
@@ -117,21 +118,21 @@ class RightsFormTest(TestCase):
                                     'Shibboleth-eppn': 'x@brown.edu'})
         self.assertIsInstance(response.context['form'], RightsMetadataEditForm)
 
-    def test_rights_editing_form_post_valid_data(self):
+    def test_rights_editing_form_valid_data(self):
         data = { 'discover_and_read': ['BDR_PUBLIC','BROWN:COMMUNITY:ALL']}
         form = RightsMetadataEditForm(data)
         self.assertTrue(form.is_valid())
 
-    def test_rights_editing_form_post_invalid_choice(self):
+    def test_rights_editing_form_invalid_choice(self):
         data = { 'discover_and_read': ['not valid']}
         form = RightsMetadataEditForm(data)
         self.assertFalse(form.is_valid())
         self.assertEquals(
                 form.errors['discover_and_read'],
-                [u"Select a valid choice. not valid is not one of the available choices."]
+                ['Select a valid choice. not valid is not one of the available choices.']
         )
 
-    def test_rights_editing_form_post_invalid_string(self):
+    def test_rights_editing_form_invalid_string(self):
         data = { 'discover_and_read': 'invalid string'}
         form = RightsMetadataEditForm(data)
         self.assertFalse(form.is_valid())
@@ -139,6 +140,21 @@ class RightsFormTest(TestCase):
                 form.errors['discover_and_read'],
                 [u"Enter a list of values."]
         )
+
+    @responses.activate
+    def test_rights_editing_post(self):
+        responses.add(responses.PUT, 'http://testserver/api/private/items/',
+                      body=json.dumps({}),
+                      status=200,
+                      content_type='application/json'
+                    )
+        data = { 'discover_and_read': ['BDR_PUBLIC','BROWN:COMMUNITY:ALL']}
+        response = self.client.post(self.rights_edit_url, data,
+                                **{
+                                    'REMOTE_USER': 'x@brown.edu',
+                                    'Shibboleth-eppn': 'x@brown.edu'})
+        redirect_url = reverse('repo_direct:display', kwargs={'pid': 'test:1234'})
+        self.assertRedirects(response, redirect_url, fetch_redirect_response=False)
 
 
 class DatastreamEditorTest(TestCase):
