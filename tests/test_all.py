@@ -59,8 +59,8 @@ class DisplayTest(TestCase):
                                 'REMOTE_USER': 'x@brown.edu',
                                 'Shibboleth-eppn': 'x@brown.edu'})
         self.assertEqual(r.status_code, 200)
-        self.assertInHTML(u'<a class="btn btn-primary btn-small" href="rightsMetadata/">View</a>', r.content.decode('utf8'))
-        self.assertInHTML(u'<a class="btn btn-success btn-small" href="MODS/edit/">Edit</a>', r.content.decode('utf8'))
+        self.assertInHTML('<a class="btn btn-primary btn-small" href="rightsMetadata/">View</a>', r.content.decode('utf8'))
+        self.assertInHTML('<a class="btn btn-success btn-small" href="MODS/edit/">Edit</a>', r.content.decode('utf8'))
 
     @responses.activate
     def test_get_deleted_mods(self):
@@ -96,8 +96,8 @@ class DisplayTest(TestCase):
                                 'REMOTE_USER': 'x@brown.edu',
                                 'Shibboleth-eppn': 'x@brown.edu'})
         self.assertEqual(r.status_code, 200)
-        self.assertInHTML(u'<a class="btn btn-primary btn-small" href="rightsMetadata/">View</a>', r.content.decode('utf8'))
-        self.assertInHTML(u'<td>MODS deleted</td>', r.content.decode('utf8'))
+        self.assertInHTML('<a class="btn btn-primary btn-small" href="rightsMetadata/">View</a>', r.content.decode('utf8'))
+        self.assertInHTML('<td>MODS deleted</td>', r.content.decode('utf8'))
 
 
 class RightsFormTest(TestCase):

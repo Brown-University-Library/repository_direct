@@ -107,8 +107,8 @@ def rights_edit(request, pid, dsid):
         params['rights'] = json.dumps({'xml_data': new_rights.serialize().decode('utf8')})
         r = requests.put(settings.ITEM_POST_URL, data=params)
         if not r.ok:
-            err_msg = u'error saving %s content\n' % dsid
-            err_msg += u'%s - %s' % (r.status_code, r.text)
+            err_msg = f'error saving {dsid} content\n'
+            err_msg += f'{r.status_code} - {r.text}'
             return HttpResponseServerError(err_msg)
         messages.info(request, 'The sharing setting for %s have changed' % (pid,), extra_tags='text-info' )
         return HttpResponseRedirect(reverse("repo_direct:display", args=(pid,)))
@@ -137,12 +137,12 @@ def ir_edit(request, pid, dsid):
             params['ir'] = json.dumps({'parameters': {'folders': folders_param}})
             r = requests.put(settings.ITEM_POST_URL, data=params)
             if not r.ok:
-                err_msg = u'error saving %s content\n' % dsid
-                err_msg += u'%s - %s' % (r.status_code, r.text)
+                err_msg = f'error saving {dsid} content\n'
+                err_msg += f'{r.status_code} - {r.text}'
                 return HttpResponseServerError(err_msg)
-            messages.info(request, 'The collections for %s have changed' % (pid,), extra_tags='text-info' )
+            messages.info(request, f'The collections for {pid} have changed', extra_tags='text-info' )
         else:
-            messages.info(request, 'no collections were selected' % (pid,), extra_tags='text-info' )
+            messages.info(request, 'no collections were selected', extra_tags='text-info' )
         return HttpResponseRedirect(reverse("repo_direct:display", args=(pid,)))
     messages.info(request, 'Note: this object will be removed from any current collections if you set new collections here.')
     return render(
@@ -170,8 +170,8 @@ def file_edit(request, pid, dsid):
             params['overwrite_content'] = 'yes'
             r = requests.put(settings.ITEM_POST_URL, data=params, files={file_name: uploaded_file})
             if not r.ok:
-                err_msg = u'error saving %s content\n' % dsid
-                err_msg += u'%s - %s' % (r.status_code, r.text)
+                err_msg = f'error saving {dsid} content\n'
+                err_msg += f'{r.status_code} - {r.text}'
                 return HttpResponseServerError(err_msg)
             msg = 'Saved new %s content.' % dsid
             if dsid.lower() == 'master_tiff' or dsid.lower() == 'master':
@@ -213,8 +213,8 @@ def xml_edit(request, pid, dsid):
                     params['rels_int'] = json.dumps({'xml_data': xml_content})
                 r = requests.put(settings.ITEM_POST_URL, data=params)
                 if not r.ok:
-                    err_msg = u'error saving %s content\n' % dsid
-                    err_msg += u'%s - %s' % (r.status_code, r.text)
+                    err_msg = f'error saving {dsid} content\n'
+                    err_msg += f'{r.status_code} - {r.text}'
                     return HttpResponseServerError(err_msg)
             else:
                 if dsid in obj.ds_list:
