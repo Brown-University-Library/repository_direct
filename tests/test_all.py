@@ -100,6 +100,26 @@ class DisplayTest(TestCase):
         self.assertInHTML('<td>MODS deleted</td>', r.content.decode('utf8'))
 
 
+class EditItemCollectionTest(TestCase):
+
+    def test_auth(self):
+        url = reverse('repo_direct:edit_item_collection', kwargs={'pid': 'testsuite:123'})
+        r = self.client.get(url, **{
+                                'REMOTE_USER': 'someone@brown.edu',
+                                'Shibboleth-eppn': 'someone@brown.edu'})
+        self.assertRedirects(r, '%s?next=%s' % (reverse('login'), url.replace(':', '%3A')))
+
+    def test_get(self):
+        url = reverse('repo_direct:edit_item_collection', kwargs={'pid': 'testsuite:123'})
+        User.objects.create(username='someone@brown.edu', password='x')
+        r = self.client.get(url, **{
+                                'REMOTE_USER': 'someone@brown.edu',
+                                'Shibboleth-eppn': 'someone@brown.edu'})
+        self.assertEqual(r.status_code, 200)
+        print(r.content.decode('utf8'))
+        self.assertContains(r, 'Edit collections that testsuite:123 belongs to')
+
+
 class RightsFormTest(TestCase):
 
     def setUp(self):

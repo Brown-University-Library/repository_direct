@@ -98,6 +98,14 @@ def reorder(request, pid):
     )
 
 
+def edit_item_collection(request, pid):
+    return render(
+            request,
+            template_name='repo_direct/edit_item_collection.html',
+            context={'pid': pid}
+        )
+
+
 @login_required
 def rights_edit(request, pid, dsid):
     form = RightsMetadataEditForm(request.POST or None)
