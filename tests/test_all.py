@@ -115,7 +115,13 @@ class EditItemCollectionTest(TestCase):
                                 'Shibboleth-eppn': 'someone@brown.edu'})
         self.assertRedirects(r, '%s?next=%s' % (reverse('login'), self.url.replace(':', '%3A')))
 
+    @responses.activate
     def test_get(self):
+        responses.add(responses.GET, 'http://localhost:8000/storage/test:123/irMetadata/',
+                      body=test_data.IR_METADATA_XML,
+                      status=200,
+                      content_type='text/xml'
+                    )
         User.objects.create(username='someone@brown.edu', password='x')
         r = self.client.get(self.url, **{
                                 'REMOTE_USER': 'someone@brown.edu',
@@ -123,6 +129,7 @@ class EditItemCollectionTest(TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, 'Edit collections that test:123 belongs to')
         self.assertContains(r, 'Collection IDs')
+        self.assertContains(r, 'value="1, 2"')
 
     @responses.activate
     def test_post(self):

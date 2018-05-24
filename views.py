@@ -110,7 +110,7 @@ def edit_item_collection(request, pid):
             messages.info(request, f'Collection IDs for testsuite:123 updated to "{form.cleaned_data["collection_ids"]}"')
             return HttpResponseRedirect(reverse('repo_direct:display', args=(pid,)))
     else:
-        form = ItemCollectionsForm()
+        form = ItemCollectionsForm.from_storage_data(pid)
     return render(
             request,
             template_name='repo_direct/edit_item_collection.html',

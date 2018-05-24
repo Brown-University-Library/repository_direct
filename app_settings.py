@@ -12,6 +12,7 @@ def get_app_setting(app_setting):
 BDR_BASE = get_app_setting("BDR_BASE")
 REORDER_URL = '%s/api/private/reorder/' % BDR_BASE
 THUMBNAIL_BASE_URL = '%s/viewers/image/thumbnail' % BDR_BASE
+STORAGE_BASE_URL = f'{BDR_BASE}/storage/'
 STUDIO_ITEM_URL = '%s/studio/item' % BDR_BASE
 ITEM_POST_URL = get_app_setting("ITEM_POST_URL")
 FOLDER_API_PUBLIC = get_app_setting("FOLDER_API_PUBLIC")
