@@ -100,7 +100,17 @@ def reorder(request, pid):
 
 
 def edit_item_collection(request, pid):
-    form = ItemCollectionsForm()
+    if request.method == 'POST':
+        form = ItemCollectionsForm(request.POST)
+        if form.is_valid():
+            try:
+                update_ir_data(pid, form.cleaned_data['collection_ids'])
+            except Exception as e:
+                return HttpResponseServerError(str(e))
+            messages.info(request, f'Collection IDs for testsuite:123 updated to "{form.cleaned_data["collection_ids"]}"')
+            return HttpResponseRedirect(reverse('repo_direct:display', args=(pid,)))
+    else:
+        form = ItemCollectionsForm()
     return render(
             request,
             template_name='repo_direct/edit_item_collection.html',
@@ -132,6 +142,21 @@ def rights_edit(request, pid, dsid):
         }
     )
 
+
+def update_ir_data(pid, collections):
+    params = {'pid': pid}
+    #passing collections in the form 123#123+456#456, instead of using collection name
+    #   The API doesn't care about the name, but should have a better way of just passing
+    #   a list of IDs.
+    folders_param = '+'.join([f'{col}#{col}' for col in collections])
+    params['ir'] = json.dumps({'parameters': {'folders': folders_param}})
+    r = requests.put(settings.ITEM_POST_URL, data=params)
+    if not r.ok:
+        err_msg = f'error saving {dsid} content\n'
+        err_msg += f'{r.status_code} - {r.text}'
+        raise Exception(err_msg)
+
+
 def ir_edit(request, pid, dsid):
     library_collection = BDR_Collection( collection_id=settings.LIBRARY_PARENT_FOLDER_ID)
     form = IrMetadataEditForm(request.POST or None)
@@ -139,17 +164,10 @@ def ir_edit(request, pid, dsid):
     if form.is_valid():
         new_collections = form.cleaned_data['collections']
         if new_collections:
-            params = {'pid': pid}
-            #passing collections in the form 123#123+456#456, instead of using collection name
-            #   The API doesn't care about the name, but should have a better way of just passing
-            #   a list of IDs.
-            folders_param = '+'.join(['%s#%s' % (col, col) for col in new_collections])
-            params['ir'] = json.dumps({'parameters': {'folders': folders_param}})
-            r = requests.put(settings.ITEM_POST_URL, data=params)
-            if not r.ok:
-                err_msg = f'error saving {dsid} content\n'
-                err_msg += f'{r.status_code} - {r.text}'
-                return HttpResponseServerError(err_msg)
+            try:
+                update_ir_data(pid, new_collections)
+            except Exception as e:
+                return HttpResponseServerError(str(e))
             messages.info(request, f'The collections for {pid} have changed', extra_tags='text-info' )
         else:
             messages.info(request, 'no collections were selected', extra_tags='text-info' )

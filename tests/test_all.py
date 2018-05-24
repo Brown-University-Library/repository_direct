@@ -28,31 +28,35 @@ class AccessTest(TestCase):
         self.assertContains(r, 'Please Enter a PID')
 
 
+def responses_setup_for_display_view():
+    responses.add(responses.GET, 'http://localhost/fedora/objects/test:123',
+                  body=test_data.OBJECT_XML,
+                  status=200,
+                  content_type='text/xml'
+                )
+    responses.add(responses.GET, 'http://localhost/fedora/objects/test:123/datastreams',
+                  body=test_data.DATASTREAMS_XML,
+                  status=200,
+                  content_type='text/xml'
+                )
+    for ds_id in ['DC', 'RELS-EXT', 'rightsMetadata', 'MODS']:
+        responses.add(responses.GET, 'http://localhost/fedora/objects/test:123/datastreams/%s' % ds_id,
+                      body=test_data.DS_PROFILE_PATTERN.format(ds_id=ds_id, ds_state='A'),
+                      status=200,
+                      content_type='text/xml'
+                    )
+    responses.add(responses.GET, 'http://localhost/fedora/objects/test:123/datastreams/RELS-EXT/content',
+                  body=test_data.RELS_EXT_XML,
+                  status=200,
+                  content_type='text/xml'
+                )
+
+
 class DisplayTest(TestCase):
 
     @responses.activate
     def test_get(self):
-        responses.add(responses.GET, 'http://localhost/fedora/objects/test:123',
-                      body=test_data.OBJECT_XML,
-                      status=200,
-                      content_type='text/xml'
-                    )
-        responses.add(responses.GET, 'http://localhost/fedora/objects/test:123/datastreams',
-                      body=test_data.DATASTREAMS_XML,
-                      status=200,
-                      content_type='text/xml'
-                    )
-        for ds_id in ['DC', 'RELS-EXT', 'rightsMetadata', 'MODS']:
-            responses.add(responses.GET, 'http://localhost/fedora/objects/test:123/datastreams/%s' % ds_id,
-                          body=test_data.DS_PROFILE_PATTERN.format(ds_id=ds_id, ds_state='A'),
-                          status=200,
-                          content_type='text/xml'
-                        )
-        responses.add(responses.GET, 'http://localhost/fedora/objects/test:123/datastreams/RELS-EXT/content',
-                      body=test_data.RELS_EXT_XML,
-                      status=200,
-                      content_type='text/xml'
-                    )
+        responses_setup_for_display_view()
         User.objects.create_user(username='x@brown.edu')
         url = reverse('repo_direct:display', kwargs={'pid': 'test:123'})
         r = self.client.get(url, **{
@@ -102,22 +106,39 @@ class DisplayTest(TestCase):
 
 class EditItemCollectionTest(TestCase):
 
+    def setUp(self):
+        self.url = reverse('repo_direct:edit_item_collection', kwargs={'pid': 'test:123'})
+
     def test_auth(self):
-        url = reverse('repo_direct:edit_item_collection', kwargs={'pid': 'testsuite:123'})
-        r = self.client.get(url, **{
+        r = self.client.get(self.url, **{
                                 'REMOTE_USER': 'someone@brown.edu',
                                 'Shibboleth-eppn': 'someone@brown.edu'})
-        self.assertRedirects(r, '%s?next=%s' % (reverse('login'), url.replace(':', '%3A')))
+        self.assertRedirects(r, '%s?next=%s' % (reverse('login'), self.url.replace(':', '%3A')))
 
     def test_get(self):
-        url = reverse('repo_direct:edit_item_collection', kwargs={'pid': 'testsuite:123'})
         User.objects.create(username='someone@brown.edu', password='x')
-        r = self.client.get(url, **{
+        r = self.client.get(self.url, **{
                                 'REMOTE_USER': 'someone@brown.edu',
                                 'Shibboleth-eppn': 'someone@brown.edu'})
         self.assertEqual(r.status_code, 200)
-        self.assertContains(r, 'Edit collections that testsuite:123 belongs to')
+        self.assertContains(r, 'Edit collections that test:123 belongs to')
         self.assertContains(r, 'Collection IDs')
+
+    @responses.activate
+    def test_post(self):
+        responses_setup_for_display_view()
+        responses.add(responses.PUT, 'http://testserver/api/private/items/',
+                      body=json.dumps({}),
+                      status=200,
+                      content_type='application/json'
+                    )
+        User.objects.create(username='someone@brown.edu', password='x')
+        data = {'collection_ids': '1, 2'}
+        r = self.client.post(self.url, data, follow=True, **{
+                                'REMOTE_USER': 'someone@brown.edu',
+                                'Shibboleth-eppn': 'someone@brown.edu'})
+        self.assertRedirects(r, reverse('repo_direct:display', kwargs={'pid': 'test:123'}))
+        self.assertContains(r, 'Collection IDs for testsuite:123 updated to &quot;1, 2&quot;')
 
 
 class RightsFormTest(TestCase):
