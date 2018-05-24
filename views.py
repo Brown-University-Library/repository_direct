@@ -104,7 +104,7 @@ def edit_item_collection(request, pid):
         form = ItemCollectionsForm(request.POST)
         if form.is_valid():
             try:
-                update_ir_data(pid, form.cleaned_data['collection_ids'])
+                update_ir_data(pid, form.cleaned_data['collection_ids'].split(','))
             except Exception as e:
                 return HttpResponseServerError(str(e))
             messages.info(request, f'Collection IDs for testsuite:123 updated to "{form.cleaned_data["collection_ids"]}"')
@@ -152,7 +152,7 @@ def update_ir_data(pid, collections):
     params['ir'] = json.dumps({'parameters': {'folders': folders_param}})
     r = requests.put(settings.ITEM_POST_URL, data=params)
     if not r.ok:
-        err_msg = f'error saving {dsid} content\n'
+        err_msg = 'error saving new collections:\n'
         err_msg += f'{r.status_code} - {r.text}'
         raise Exception(err_msg)
 
