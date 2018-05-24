@@ -116,8 +116,8 @@ class EditItemCollectionTest(TestCase):
                                 'REMOTE_USER': 'someone@brown.edu',
                                 'Shibboleth-eppn': 'someone@brown.edu'})
         self.assertEqual(r.status_code, 200)
-        print(r.content.decode('utf8'))
         self.assertContains(r, 'Edit collections that testsuite:123 belongs to')
+        self.assertContains(r, 'Collection IDs')
 
 
 class RightsFormTest(TestCase):

@@ -26,6 +26,7 @@ from .forms import (
     FileReplacementForm,
     EditXMLForm,
     ReorderForm,
+    ItemCollectionsForm,
 )
 
 
@@ -99,10 +100,11 @@ def reorder(request, pid):
 
 
 def edit_item_collection(request, pid):
+    form = ItemCollectionsForm()
     return render(
             request,
             template_name='repo_direct/edit_item_collection.html',
-            context={'pid': pid}
+            context={'pid': pid, 'form': form}
         )
 
 

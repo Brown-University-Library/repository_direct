@@ -96,5 +96,18 @@ class IrMetadataEditForm(forms.Form, CommonFormHelperMixin):
     )
 
 
+class ItemCollectionsForm(forms.Form):
+
+    collection_ids = forms.CharField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['collection_ids'].label = 'Collection IDs'
+        self.helper = FormHelper()
+        self.helper.form_class = 'col-md-6 col-md-offset-3'
+        self.helper.add_input(Submit('submit', 'Save Collection IDs'))
+
+
 class ReorderForm(forms.Form):
     child_pids_ordered_list = forms.CharField(required=True, widget=HiddenInput)
+
