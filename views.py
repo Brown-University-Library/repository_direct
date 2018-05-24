@@ -152,7 +152,7 @@ def update_ir_data(pid, collections):
     params['ir'] = json.dumps({'parameters': {'folders': folders_param}})
     r = requests.put(settings.ITEM_POST_URL, data=params)
     if not r.ok:
-        err_msg = 'error saving new collections:\n'
+        err_msg = 'error saving new collections information:\n'
         err_msg += f'{r.status_code} - {r.text}'
         raise Exception(err_msg)
 
