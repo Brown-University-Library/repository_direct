@@ -107,7 +107,7 @@ def edit_item_collection(request, pid):
                 update_ir_data(pid, form.cleaned_data['collection_ids'].split(','))
             except Exception as e:
                 return HttpResponseServerError(str(e))
-            messages.info(request, f'Collection IDs for testsuite:123 updated to "{form.cleaned_data["collection_ids"]}"')
+            messages.info(request, f'Collection IDs for {pid} updated to "{form.cleaned_data["collection_ids"]}"')
             return HttpResponseRedirect(reverse('repo_direct:display', args=(pid,)))
     else:
         form = ItemCollectionsForm.from_storage_data(pid)

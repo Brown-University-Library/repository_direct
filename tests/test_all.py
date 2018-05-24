@@ -145,7 +145,7 @@ class EditItemCollectionTest(TestCase):
                                 'REMOTE_USER': 'someone@brown.edu',
                                 'Shibboleth-eppn': 'someone@brown.edu'})
         self.assertRedirects(r, reverse('repo_direct:display', kwargs={'pid': 'test:123'}))
-        self.assertContains(r, 'Collection IDs for testsuite:123 updated to &quot;1, 2&quot;')
+        self.assertContains(r, 'Collection IDs for test:123 updated to &quot;1, 2&quot;')
 
 
 class RightsFormTest(TestCase):
