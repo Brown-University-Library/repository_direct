@@ -3,7 +3,10 @@ from django import forms
 from django.forms.widgets import CheckboxSelectMultiple, HiddenInput
 from django.contrib.admin.widgets import AdminFileWidget
 
+import requests
+from eulxml.xmlmap import load_xmlobject_from_string
 from bdrxml.rights import RightsBuilder
+from bdrxml import irMetadata
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from django_ace import AceWidget
@@ -96,5 +99,26 @@ class IrMetadataEditForm(forms.Form, CommonFormHelperMixin):
     )
 
 
+class ItemCollectionsForm(forms.Form):
+
+    collection_ids = forms.CharField(required=False)
+
+    @staticmethod
+    def from_storage_data(pid):
+        r = requests.get(f'{settings.STORAGE_BASE_URL}{pid}/irMetadata/')
+        if not r.ok:
+            raise Exception(f'{r.status_code} - {r.text}')
+        ir_obj = load_xmlobject_from_string(r.content, irMetadata.IR)
+        return ItemCollectionsForm({'collection_ids': ', '.join(ir_obj.collection_list)})
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['collection_ids'].label = 'Collection IDs'
+        self.helper = FormHelper()
+        self.helper.form_class = 'col-md-6 col-md-offset-3'
+        self.helper.add_input(Submit('submit', 'Save Collection IDs'))
+
+
 class ReorderForm(forms.Form):
     child_pids_ordered_list = forms.CharField(required=True, widget=HiddenInput)
+

@@ -26,6 +26,7 @@ from .forms import (
     FileReplacementForm,
     EditXMLForm,
     ReorderForm,
+    ItemCollectionsForm,
 )
 
 
@@ -98,6 +99,25 @@ def reorder(request, pid):
     )
 
 
+def edit_item_collection(request, pid):
+    if request.method == 'POST':
+        form = ItemCollectionsForm(request.POST)
+        if form.is_valid():
+            try:
+                update_ir_data(pid, form.cleaned_data['collection_ids'].split(','))
+            except Exception as e:
+                return HttpResponseServerError(str(e))
+            messages.info(request, f'Collection IDs for {pid} updated to "{form.cleaned_data["collection_ids"]}"')
+            return HttpResponseRedirect(reverse('repo_direct:display', args=(pid,)))
+    else:
+        form = ItemCollectionsForm.from_storage_data(pid)
+    return render(
+            request,
+            template_name='repo_direct/edit_item_collection.html',
+            context={'pid': pid, 'form': form}
+        )
+
+
 @login_required
 def rights_edit(request, pid, dsid):
     form = RightsMetadataEditForm(request.POST or None)
@@ -107,8 +127,8 @@ def rights_edit(request, pid, dsid):
         params['rights'] = json.dumps({'xml_data': new_rights.serialize().decode('utf8')})
         r = requests.put(settings.ITEM_POST_URL, data=params)
         if not r.ok:
-            err_msg = u'error saving %s content\n' % dsid
-            err_msg += u'%s - %s' % (r.status_code, r.text)
+            err_msg = f'error saving {dsid} content\n'
+            err_msg += f'{r.status_code} - {r.text}'
             return HttpResponseServerError(err_msg)
         messages.info(request, 'The sharing setting for %s have changed' % (pid,), extra_tags='text-info' )
         return HttpResponseRedirect(reverse("repo_direct:display", args=(pid,)))
@@ -122,6 +142,21 @@ def rights_edit(request, pid, dsid):
         }
     )
 
+
+def update_ir_data(pid, collections):
+    params = {'pid': pid}
+    #passing collections in the form 123#123+456#456, instead of using collection name
+    #   The API doesn't care about the name, but should have a better way of just passing
+    #   a list of IDs.
+    folders_param = '+'.join([f'{col}#{col}' for col in collections])
+    params['ir'] = json.dumps({'parameters': {'folders': folders_param}})
+    r = requests.put(settings.ITEM_POST_URL, data=params)
+    if not r.ok:
+        err_msg = 'error saving new collections information:\n'
+        err_msg += f'{r.status_code} - {r.text}'
+        raise Exception(err_msg)
+
+
 def ir_edit(request, pid, dsid):
     library_collection = BDR_Collection( collection_id=settings.LIBRARY_PARENT_FOLDER_ID)
     form = IrMetadataEditForm(request.POST or None)
@@ -129,20 +164,13 @@ def ir_edit(request, pid, dsid):
     if form.is_valid():
         new_collections = form.cleaned_data['collections']
         if new_collections:
-            params = {'pid': pid}
-            #passing collections in the form 123#123+456#456, instead of using collection name
-            #   The API doesn't care about the name, but should have a better way of just passing
-            #   a list of IDs.
-            folders_param = '+'.join(['%s#%s' % (col, col) for col in new_collections])
-            params['ir'] = json.dumps({'parameters': {'folders': folders_param}})
-            r = requests.put(settings.ITEM_POST_URL, data=params)
-            if not r.ok:
-                err_msg = u'error saving %s content\n' % dsid
-                err_msg += u'%s - %s' % (r.status_code, r.text)
-                return HttpResponseServerError(err_msg)
-            messages.info(request, 'The collections for %s have changed' % (pid,), extra_tags='text-info' )
+            try:
+                update_ir_data(pid, new_collections)
+            except Exception as e:
+                return HttpResponseServerError(str(e))
+            messages.info(request, f'The collections for {pid} have changed', extra_tags='text-info' )
         else:
-            messages.info(request, 'no collections were selected' % (pid,), extra_tags='text-info' )
+            messages.info(request, 'no collections were selected', extra_tags='text-info' )
         return HttpResponseRedirect(reverse("repo_direct:display", args=(pid,)))
     messages.info(request, 'Note: this object will be removed from any current collections if you set new collections here.')
     return render(
@@ -170,8 +198,8 @@ def file_edit(request, pid, dsid):
             params['overwrite_content'] = 'yes'
             r = requests.put(settings.ITEM_POST_URL, data=params, files={file_name: uploaded_file})
             if not r.ok:
-                err_msg = u'error saving %s content\n' % dsid
-                err_msg += u'%s - %s' % (r.status_code, r.text)
+                err_msg = f'error saving {dsid} content\n'
+                err_msg += f'{r.status_code} - {r.text}'
                 return HttpResponseServerError(err_msg)
             msg = 'Saved new %s content.' % dsid
             if dsid.lower() == 'master_tiff' or dsid.lower() == 'master':
@@ -213,8 +241,8 @@ def xml_edit(request, pid, dsid):
                     params['rels_int'] = json.dumps({'xml_data': xml_content})
                 r = requests.put(settings.ITEM_POST_URL, data=params)
                 if not r.ok:
-                    err_msg = u'error saving %s content\n' % dsid
-                    err_msg += u'%s - %s' % (r.status_code, r.text)
+                    err_msg = f'error saving {dsid} content\n'
+                    err_msg += f'{r.status_code} - {r.text}'
                     return HttpResponseServerError(err_msg)
             else:
                 if dsid in obj.ds_list:

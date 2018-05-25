@@ -22,6 +22,11 @@ urlpatterns = [
         name = 'reorder'
     ),
     url(
+        regex= r'^(?P<pid>[^/]+)/edit/collection/$',
+        view = views.edit_item_collection,
+        name = 'edit_item_collection'
+    ),
+    url(
         regex= r'^(?P<pid>[^/]+)/(?P<dsid>({}))/edit/$'.format('|'.join(settings.XML_DSIDS)),
         view = views.xml_edit,
         name = 'xml-edit'
