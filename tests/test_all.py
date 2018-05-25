@@ -65,6 +65,7 @@ class DisplayTest(TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertInHTML('<a class="btn btn-primary btn-small" href="rightsMetadata/">View</a>', r.content.decode('utf8'))
         self.assertInHTML('<a class="btn btn-success btn-small" href="MODS/edit/">Edit</a>', r.content.decode('utf8'))
+        self.assertContains(r, 'Update test:123\'s collections')
 
     @responses.activate
     def test_get_deleted_mods(self):
