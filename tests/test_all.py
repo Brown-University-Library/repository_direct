@@ -130,7 +130,7 @@ class EditItemCollectionTest(TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, 'Edit collections that test:123 belongs to')
         self.assertContains(r, 'Collection IDs')
-        self.assertContains(r, 'value="1, 2"')
+        self.assertContains(r, 'value="1,2"')
 
     @responses.activate
     def test_post(self):
