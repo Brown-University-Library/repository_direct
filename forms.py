@@ -101,7 +101,7 @@ class IrMetadataEditForm(forms.Form, CommonFormHelperMixin):
 
 class ItemCollectionsForm(forms.Form):
 
-    collection_ids = forms.CharField(required=False)
+    collection_ids = forms.CharField(required=False, help_text='list collection IDs separated by "," - eg. "1,2"')
 
     @staticmethod
     def from_storage_data(pid):
@@ -109,7 +109,7 @@ class ItemCollectionsForm(forms.Form):
         if not r.ok:
             raise Exception(f'{r.status_code} - {r.text}')
         ir_obj = load_xmlobject_from_string(r.content, irMetadata.IR)
-        return ItemCollectionsForm({'collection_ids': ', '.join(ir_obj.collection_list)})
+        return ItemCollectionsForm({'collection_ids': ','.join(ir_obj.collection_list)})
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
