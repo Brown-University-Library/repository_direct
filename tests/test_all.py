@@ -29,23 +29,23 @@ class AccessTest(TestCase):
 
 
 def responses_setup_for_display_view():
-    responses.add(responses.GET, 'http://localhost/fedora/objects/test:123',
+    responses.add(responses.GET, 'http://testserver/fedora/objects/test:123',
                   body=test_data.OBJECT_XML,
                   status=200,
                   content_type='text/xml'
                 )
-    responses.add(responses.GET, 'http://localhost/fedora/objects/test:123/datastreams',
+    responses.add(responses.GET, 'http://testserver/fedora/objects/test:123/datastreams',
                   body=test_data.DATASTREAMS_XML,
                   status=200,
                   content_type='text/xml'
                 )
     for ds_id in ['DC', 'RELS-EXT', 'rightsMetadata', 'MODS']:
-        responses.add(responses.GET, 'http://localhost/fedora/objects/test:123/datastreams/%s' % ds_id,
+        responses.add(responses.GET, 'http://testserver/fedora/objects/test:123/datastreams/%s' % ds_id,
                       body=test_data.DS_PROFILE_PATTERN.format(ds_id=ds_id, ds_state='A'),
                       status=200,
                       content_type='text/xml'
                     )
-    responses.add(responses.GET, 'http://localhost/fedora/objects/test:123/datastreams/RELS-EXT/content',
+    responses.add(responses.GET, 'http://testserver/fedora/objects/test:123/datastreams/RELS-EXT/content',
                   body=test_data.RELS_EXT_XML,
                   status=200,
                   content_type='text/xml'
@@ -69,28 +69,28 @@ class DisplayTest(TestCase):
 
     @responses.activate
     def test_get_deleted_mods(self):
-        responses.add(responses.GET, 'http://localhost/fedora/objects/test:123',
+        responses.add(responses.GET, 'http://testserver/fedora/objects/test:123',
                       body=test_data.OBJECT_XML,
                       status=200,
                       content_type='text/xml'
                     )
-        responses.add(responses.GET, 'http://localhost/fedora/objects/test:123/datastreams',
+        responses.add(responses.GET, 'http://testserver/fedora/objects/test:123/datastreams',
                       body=test_data.DATASTREAMS_XML,
                       status=200,
                       content_type='text/xml'
                     )
         for ds_id in ['DC', 'RELS-EXT', 'rightsMetadata']:
-            responses.add(responses.GET, 'http://localhost/fedora/objects/test:123/datastreams/%s' % ds_id,
+            responses.add(responses.GET, 'http://testserver/fedora/objects/test:123/datastreams/%s' % ds_id,
                           body=test_data.DS_PROFILE_PATTERN.format(ds_id=ds_id, ds_state='A'),
                           status=200,
                           content_type='text/xml'
                         )
-        responses.add(responses.GET, 'http://localhost/fedora/objects/test:123/datastreams/MODS',
+        responses.add(responses.GET, 'http://testserver/fedora/objects/test:123/datastreams/MODS',
                       body=test_data.DS_PROFILE_PATTERN.format(ds_id='MODS', ds_state='D'),
                       status=200,
                       content_type='text/xml'
                     )
-        responses.add(responses.GET, 'http://localhost/fedora/objects/test:123/datastreams/RELS-EXT/content',
+        responses.add(responses.GET, 'http://testserver/fedora/objects/test:123/datastreams/RELS-EXT/content',
                       body=test_data.RELS_EXT_XML,
                       status=200,
                       content_type='text/xml'
@@ -118,7 +118,7 @@ class EditItemCollectionTest(TestCase):
 
     @responses.activate
     def test_get(self):
-        responses.add(responses.GET, 'http://localhost:8000/storage/test:123/irMetadata/',
+        responses.add(responses.GET, 'http://testserver/storage/test:123/irMetadata/',
                       body=test_data.IR_METADATA_XML,
                       status=200,
                       content_type='text/xml'
@@ -231,7 +231,7 @@ class DatastreamEditorTest(TestCase):
 
     @responses.activate
     def test_ir_metadata_edit(self):
-        responses.add(responses.GET, 'https://localhost/api/collections/468/',
+        responses.add(responses.GET, 'http://testserver/api/collections/468/',
                       body=test_data.LIB_API_DATA,
                       status=200,
                       content_type='application/json'
@@ -243,12 +243,12 @@ class RightsEditXmlTest(TestCase):
 
     @responses.activate
     def test_get(self):
-        responses.add(responses.GET, 'http://localhost/fedora/objects/test:123/datastreams',
+        responses.add(responses.GET, 'http://testserver/fedora/objects/test:123/datastreams',
                       body=test_data.DATASTREAMS_XML,
                       status=200,
                       content_type='text/xml'
                     )
-        responses.add(responses.GET, 'http://localhost/fedora/objects/test:123/datastreams/rightsMetadata/content',
+        responses.add(responses.GET, 'http://testserver/fedora/objects/test:123/datastreams/rightsMetadata/content',
                       body=test_data.RIGHTS_XML,
                       status=200,
                       content_type='text/xml'
