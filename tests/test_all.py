@@ -66,6 +66,7 @@ class DisplayTest(TestCase):
         self.assertInHTML('<a class="btn btn-primary btn-small" href="rightsMetadata/">View</a>', r.content.decode('utf8'))
         self.assertInHTML('<a class="btn btn-success btn-small" href="MODS/edit/">Edit</a>', r.content.decode('utf8'))
         self.assertContains(r, 'Update test:123\'s collections')
+        self.assertContains(r, 'Extend test:123\'s embargo')
 
     @responses.activate
     def test_get_deleted_mods(self):
@@ -147,6 +148,41 @@ class EditItemCollectionTest(TestCase):
                                 'Shibboleth-eppn': 'someone@brown.edu'})
         self.assertRedirects(r, reverse('repo_direct:display', kwargs={'pid': 'test:123'}))
         self.assertContains(r, 'Collection IDs for test:123 updated to &quot;1, 2&quot;')
+
+
+class EmbargoTest(TestCase):
+
+    def setUp(self):
+        self.url = reverse('repo_direct:embargo', kwargs={'pid': 'test:123'})
+
+    def test_auth(self):
+        r = self.client.get(self.url, **{
+                                'REMOTE_USER': 'someone@brown.edu',
+                                'Shibboleth-eppn': 'someone@brown.edu'})
+        self.assertRedirects(r, '%s?next=%s' % (reverse('login'), self.url.replace(':', '%3A')))
+
+    def test_get(self):
+        User.objects.create(username='someone@brown.edu', password='x')
+        r = self.client.get(self.url, **{
+                                'REMOTE_USER': 'someone@brown.edu',
+                                'Shibboleth-eppn': 'someone@brown.edu'})
+        self.assertEqual(r.status_code, 200)
+
+    @responses.activate
+    def test_post(self):
+        responses_setup_for_display_view()
+        responses.add(responses.PUT, 'http://testserver/api/private/items/',
+                      body=json.dumps({}),
+                      status=200,
+                      content_type='application/json'
+                    )
+        User.objects.create(username='someone@brown.edu', password='x')
+        post_data = {'new_embargo_end_year': 2020}
+        r = self.client.post(self.url, post_data, follow=True, **{
+                                'REMOTE_USER': 'someone@brown.edu',
+                                'Shibboleth-eppn': 'someone@brown.edu'})
+        self.assertRedirects(r, reverse('repo_direct:display', kwargs={'pid': 'test:123'}))
+        self.assertContains(r, '2020 added.')
 
 
 class RightsFormTest(TestCase):

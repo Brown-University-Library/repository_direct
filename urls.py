@@ -27,6 +27,11 @@ urlpatterns = [
         name = 'edit_item_collection'
     ),
     url(
+        regex= r'^(?P<pid>[^/]+)/edit/embargo/$',
+        view = views.embargo,
+        name = 'embargo'
+    ),
+    url(
         regex= r'^(?P<pid>[^/]+)/(?P<dsid>({}))/edit/$'.format('|'.join(settings.XML_DSIDS)),
         view = views.xml_edit,
         name = 'xml-edit'

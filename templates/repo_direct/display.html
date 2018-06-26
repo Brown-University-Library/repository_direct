@@ -4,7 +4,8 @@
 {% if obj_type == "implicit-set" %}
 <a href="{% url 'repo_direct:reorder' obj.pid %}">Reorder children</a>
 {% endif %}
-<a href="{% url 'repo_direct:edit_item_collection' obj.pid %}">Update {{obj.pid}}'s collections</a>
+<a href="{% url 'repo_direct:edit_item_collection' obj.pid %}">Update {{obj.pid}}'s collections</a><br />
+<a href="{% url 'repo_direct:embargo' obj.pid %}">Extend {{obj.pid}}'s embargo</a>
 <h2>Datastreams</h2>
 <table class="table table-striped">
   <thead>
