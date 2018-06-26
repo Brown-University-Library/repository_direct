@@ -119,6 +119,17 @@ class ItemCollectionsForm(forms.Form):
         self.helper.add_input(Submit('submit', 'Save Collection IDs'))
 
 
+class EmbargoForm(forms.Form):
+
+    new_embargo_end_year = forms.IntegerField(help_text='API will handle setting the embargoed status, but won\'t update any access controls.')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_class = 'col-md-6 col-md-offset-3'
+        self.helper.add_input(Submit('submit', 'Add Embargo Year'))
+
+
 class ReorderForm(forms.Form):
     child_pids_ordered_list = forms.CharField(required=True, widget=HiddenInput)
 

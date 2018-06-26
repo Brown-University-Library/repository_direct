@@ -27,6 +27,7 @@ from .forms import (
     EditXMLForm,
     ReorderForm,
     ItemCollectionsForm,
+    EmbargoForm,
 )
 
 
@@ -114,6 +115,33 @@ def edit_item_collection(request, pid):
     return render(
             request,
             template_name='repo_direct/edit_item_collection.html',
+            context={'pid': pid, 'form': form}
+        )
+
+
+def _post_embargo_year_to_api(pid, year):
+    params = {'pid': pid}
+    embargo_end = f'{year}-06-01T00:00:01Z'
+    params['rels'] = json.dumps({'embargo_end': embargo_end})
+    r = requests.put(settings.ITEM_POST_URL, data=params)
+    if not r.ok:
+        err_msg = 'error saving new embargo end year:\n'
+        err_msg += f'{r.status_code} - {r.text}'
+        raise Exception(err_msg)
+
+
+def embargo(request, pid):
+    if request.method == 'POST':
+        form = EmbargoForm(request.POST)
+        if form.is_valid():
+            _post_embargo_year_to_api(pid, form.cleaned_data['new_embargo_end_year'])
+            messages.info(request, f'{form.cleaned_data["new_embargo_end_year"]} added.')
+            return HttpResponseRedirect(reverse('repo_direct:display', args=(pid,)))
+    else:
+        form = EmbargoForm()
+    return render(
+            request,
+            template_name='repo_direct/embargo.html',
             context={'pid': pid, 'form': form}
         )
 
