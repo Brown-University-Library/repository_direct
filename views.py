@@ -10,6 +10,7 @@ from django.http import (
 )
 from django.shortcuts import render
 import requests
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 from lxml.etree import XMLSyntaxError
 from eulfedora.server import Repository
@@ -224,7 +225,9 @@ def file_edit(request, pid, dsid):
             params['content_streams'] = json.dumps(
                     [{'dsID': dsid, 'file_name': file_name}])
             params['overwrite_content'] = 'yes'
-            r = requests.put(settings.ITEM_POST_URL, data=params, files={file_name: uploaded_file})
+            params[file_name] = (file_name, uploaded_file)
+            m = MultipartEncoder(fields=params)
+            r = requests.put(settings.ITEM_POST_URL, data=m, headers={"Content-Type": m.content_type})
             if not r.ok:
                 err_msg = f'error saving {dsid} content\n'
                 err_msg += f'{r.status_code} - {r.text}'
