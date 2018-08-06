@@ -9,6 +9,7 @@ from django.http import (
     HttpResponseServerError,
 )
 from django.shortcuts import render
+from django.views.decorators.http import require_http_methods
 import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
@@ -251,6 +252,7 @@ def file_edit(request, pid, dsid):
 
 
 @login_required
+@require_http_methods(['GET', 'POST'])
 def xml_edit(request, pid, dsid):
     request.encoding = 'utf-8'
     obj = repo.get_object(pid)
@@ -307,3 +309,4 @@ def xml_edit(request, pid, dsid):
             'dsid': dsid
         }
     )
+
