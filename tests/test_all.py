@@ -274,6 +274,16 @@ class DatastreamEditorTest(TestCase):
                     )
         self._common_edit_test('ir-edit', 'irMetadata')
 
+    def test_mods_xml_edit(self):
+        url = reverse('repo_direct:xml-edit', kwargs={'pid': 'test:123', 'dsid': 'MODS'})
+        r = self.client.head(url,
+                **{
+                    'REMOTE_USER': 'x@brown.edu',
+                    'Shibboleth-eppn': 'x@brown.edu'
+                }
+            )
+        self.assertEqual(r.status_code, 405)
+
 
 class RightsEditXmlTest(TestCase):
 
