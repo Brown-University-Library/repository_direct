@@ -211,6 +211,25 @@ class EmbargoTest(TestCase):
         self.assertContains(r, '2020 added.')
 
 
+class CreateStreamTest(TestCase):
+
+    def setUp(self):
+        self.url = reverse('repo_direct:create_stream', kwargs={'pid': 'test:123'})
+
+    def test_auth(self):
+        r = self.client.get(self.url, **{
+                                'REMOTE_URL': 'someone@brown.edu',
+                                'Shibboleth-eppn': 'someone@brown.edu'})
+        self.assertRedirects(r, '%s?next=%s' % (reverse('login'), self.url.replace(':', '%3A')))
+
+    def test_get(self):
+        User.objects.create(username='someone@brown.edu', password='x')
+        r = self.client.get(self.url, **{
+                                'REMOTE_USER': 'someone@brown.edu',
+                                'Shibboleth-eppn': 'someone@brown.edu'})
+        self.assertEqual(r.status_code, 200)
+
+
 class RightsFormTest(TestCase):
 
     def setUp(self):

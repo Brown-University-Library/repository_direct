@@ -30,6 +30,7 @@ from .forms import (
     ReorderForm,
     ItemCollectionsForm,
     EmbargoForm,
+    CreateStreamForm,
 )
 
 
@@ -169,7 +170,12 @@ def embargo(request, pid):
 
 
 def create_stream(request, pid):
-    pass
+    form = CreateStreamForm()
+    return render(
+            request,
+            template_name='repo_direct/create_stream.html',
+            context={'pid': pid, 'form': form}
+        )
 
 
 @login_required

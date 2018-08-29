@@ -130,6 +130,17 @@ class EmbargoForm(forms.Form):
         self.helper.add_input(Submit('submit', 'Add Embargo Year'))
 
 
+class CreateStreamForm(forms.Form):
+
+    access_permissions = forms.ChoiceField(choices=( ('brown', 'Brown Only'), ('public', 'Public') ))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_class = 'col-md-6 col-md-offset-3'
+        self.helper.add_input(Submit('submit', 'Create Stream'))
+
+
 class ReorderForm(forms.Form):
     child_pids_ordered_list = forms.CharField(required=True, widget=HiddenInput)
 
