@@ -6,6 +6,9 @@
 {% endif %}
 <a href="{% url 'repo_direct:edit_item_collection' obj.pid %}">Update {{obj.pid}}'s collections</a><br />
 <a href="{% url 'repo_direct:embargo' obj.pid %}">Extend {{obj.pid}}'s embargo</a>
+{% if audio_video_obj %}
+<a href="{% url 'repo_direct:create_stream' obj.pid %}">Create Streaming Derivative</a>
+{% endif %}
 <h2>Datastreams</h2>
 <table class="table table-striped">
   <thead>

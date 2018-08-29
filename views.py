@@ -50,13 +50,33 @@ def landing(request):
     )
 
 
+def _audio_video_obj(obj):
+    av_content_models = [
+                'info:fedora/bdr-cmodel:audio',
+                'info:fedora/bdr-cmodel:video',
+                'info:fedora/bdr-cmodel:audioMaster',
+                'info:fedora/bdr-cmodel:aiff',
+                'info:fedora/bdr-cmodel:wav',
+                'info:fedora/bdr-cmodel:mp3',
+                'info:fedora/bdr-cmodel:mp4',
+                'info:fedora/bdr-cmodel:m4v',
+                'info:fedora/bdr-cmodel:mov',
+            ]
+    for cm in av_content_models:
+        if obj.has_model(cm):
+            return True
+    return False
+
+
 def display(request, pid):
     obj = repo.get_object(pid, create=False)
     if not obj.exists:
         raise Http404
     template_info = {'obj': obj}
-    content_models = obj.get_models()
-    if URIRef('info:fedora/bdr-cmodel:implicit-set') in content_models:
+    if _audio_video_obj(obj):
+        template_info['audio_video_obj'] = True
+    implicit_set_cmodel = 'info:fedora/bdr-cmodel:implicit-set'
+    if obj.has_model(implicit_set_cmodel):
         template_info['obj_type'] = 'implicit-set'
     else:
         template_info['obj_type'] = ''
@@ -76,7 +96,7 @@ def reorder(request, pid):
     form = ReorderForm(request.POST or None)
     if request.method == 'POST':
         if form.is_valid():
-            child_pids_ordered_list = form.cleaned_data['child_pids_ordered_list'].split(u',')
+            child_pids_ordered_list = form.cleaned_data['child_pids_ordered_list'].split(',')
             pairs_param_for_api = json.dumps([(value, str(index+1)) for index, value in enumerate(child_pids_ordered_list)])
             r = requests.post(settings.REORDER_URL, data={'parent_pid': pid, 'child_pairs': pairs_param_for_api})
             if r.ok:
@@ -146,6 +166,10 @@ def embargo(request, pid):
             template_name='repo_direct/embargo.html',
             context={'pid': pid, 'form': form}
         )
+
+
+def create_stream(request, pid):
+    pass
 
 
 @login_required

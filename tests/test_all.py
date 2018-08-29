@@ -28,14 +28,28 @@ class AccessTest(TestCase):
         self.assertContains(r, 'Please Enter a PID')
 
 
-def responses_setup_for_display_view():
+def responses_setup_for_display_view(object_type=None):
     responses.add(responses.GET, 'http://testserver/fedora/objects/test:123',
                   body=test_data.OBJECT_XML,
                   status=200,
                   content_type='text/xml'
                 )
+    if object_type == 'audio':
+        datastreams_xml = test_data.MP3_DATASTREAMS_XML
+        responses.add(responses.GET, 'http://testserver/fedora/objects/test:123/datastreams/MP3',
+                      body=test_data.DS_PROFILE_PATTERN.format(ds_id='MP3', ds_state='A'),
+                      status=200,
+                      content_type='text/xml'
+                    )
+        responses.add(responses.GET, 'http://testserver/fedora/objects/test:123/datastreams/RELS-EXT/content',
+                      body=test_data.RELS_EXT_XML.format(cmodel='audio'),
+                      status=200,
+                      content_type='text/xml'
+                    )
+    else:
+        datastreams_xml = test_data.DATASTREAMS_XML
     responses.add(responses.GET, 'http://testserver/fedora/objects/test:123/datastreams',
-                  body=test_data.DATASTREAMS_XML,
+                  body=datastreams_xml,
                   status=200,
                   content_type='text/xml'
                 )
@@ -46,7 +60,7 @@ def responses_setup_for_display_view():
                       content_type='text/xml'
                     )
     responses.add(responses.GET, 'http://testserver/fedora/objects/test:123/datastreams/RELS-EXT/content',
-                  body=test_data.RELS_EXT_XML,
+                  body=test_data.RELS_EXT_XML.format(cmodel='pdf'),
                   status=200,
                   content_type='text/xml'
                 )
@@ -56,7 +70,7 @@ class DisplayTest(TestCase):
 
     @responses.activate
     def test_get(self):
-        responses_setup_for_display_view()
+        responses_setup_for_display_view(object_type='audio')
         User.objects.create_user(username='x@brown.edu')
         url = reverse('repo_direct:display', kwargs={'pid': 'test:123'})
         r = self.client.get(url, **{
@@ -67,6 +81,18 @@ class DisplayTest(TestCase):
         self.assertInHTML('<a class="btn btn-success btn-small" href="MODS/edit/">Edit</a>', r.content.decode('utf8'))
         self.assertContains(r, 'Update test:123\'s collections')
         self.assertContains(r, 'Extend test:123\'s embargo')
+        self.assertContains(r, 'Create Streaming Derivative')
+
+    @responses.activate
+    def test_get_metadata_obj(self):
+        responses_setup_for_display_view()
+        User.objects.create_user(username='x@brown.edu')
+        url = reverse('repo_direct:display', kwargs={'pid': 'test:123'})
+        r = self.client.get(url, **{
+                                'REMOTE_USER': 'x@brown.edu',
+                                'Shibboleth-eppn': 'x@brown.edu'})
+        self.assertEqual(r.status_code, 200)
+        self.assertNotContains(r, 'Create Streaming Derivative')
 
     @responses.activate
     def test_get_deleted_mods(self):
@@ -92,7 +118,7 @@ class DisplayTest(TestCase):
                       content_type='text/xml'
                     )
         responses.add(responses.GET, 'http://testserver/fedora/objects/test:123/datastreams/RELS-EXT/content',
-                      body=test_data.RELS_EXT_XML,
+                      body=test_data.RELS_EXT_XML.format(cmodel='pdf'),
                       status=200,
                       content_type='text/xml'
                     )
@@ -191,7 +217,7 @@ class RightsFormTest(TestCase):
         User.objects.create_user(username='x@brown.edu')
         self.rights_edit_url = reverse('repo_direct:rights-edit',
                     kwargs={
-                        'pid': 'test:1234',
+                        'pid': 'test:123',
                         'dsid': 'rightsMetadata'
                         }
                 )
@@ -238,7 +264,7 @@ class RightsFormTest(TestCase):
                                 **{
                                     'REMOTE_USER': 'x@brown.edu',
                                     'Shibboleth-eppn': 'x@brown.edu'})
-        redirect_url = reverse('repo_direct:display', kwargs={'pid': 'test:1234'})
+        redirect_url = reverse('repo_direct:display', kwargs={'pid': 'test:123'})
         self.assertRedirects(response, redirect_url, fetch_redirect_response=False)
 
 
@@ -251,7 +277,7 @@ class DatastreamEditorTest(TestCase):
         r = self.client.get(
                 reverse("repo_direct:{}".format(reverse_name),
                     kwargs={
-                        'pid': 'test:1234',
+                        'pid': 'test:123',
                         'dsid': dsid
                         }
                 ),
@@ -260,7 +286,7 @@ class DatastreamEditorTest(TestCase):
                     'Shibboleth-eppn': 'x@brown.edu'
                 }
         )
-        self.assertContains(r, "Edit test:1234's {} datastream".format(dsid))
+        self.assertContains(r, "Edit test:123's {} datastream".format(dsid))
 
     def test_rights_edit(self):
         self._common_edit_test('rights-edit', 'rightsMetadata')
