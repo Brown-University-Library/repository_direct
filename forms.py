@@ -133,7 +133,8 @@ class EmbargoForm(forms.Form):
 
 class CreateStreamForm(forms.Form):
 
-    visibility = forms.ChoiceField(choices=( ('private', 'Private'), ('brown', 'Brown Only'), ('public', 'Public') ))
+    visibility = forms.ChoiceField(choices=( ('brown', 'Brown Only'), ('public', 'Public') ),
+            help_text='If you need other visibility options, please contact the BDR team.')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
