@@ -132,7 +132,7 @@ class EmbargoForm(forms.Form):
 
 class CreateStreamForm(forms.Form):
 
-    access_permissions = forms.ChoiceField(choices=( ('brown', 'Brown Only'), ('public', 'Public') ))
+    visibility = forms.ChoiceField(choices=( ('private', 'Private'), ('brown', 'Brown Only'), ('public', 'Public') ))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

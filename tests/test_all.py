@@ -1,4 +1,5 @@
 import json
+from unittest.mock import patch
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import Client, TestCase
@@ -228,6 +229,18 @@ class CreateStreamTest(TestCase):
                                 'REMOTE_USER': 'someone@brown.edu',
                                 'Shibboleth-eppn': 'someone@brown.edu'})
         self.assertEqual(r.status_code, 200)
+
+    @responses.activate
+    @patch('repo_direct_app.views._queue_stream_job')
+    def test_post(self, mock_method):
+        responses_setup_for_display_view()
+        User.objects.create(username='someone@brown.edu', password='x')
+        post_data = {'visibility': 'brown'}
+        r = self.client.post(self.url, post_data, follow=True, **{
+                                'REMOTE_USER': 'someone@brown.edu',
+                                'Shibboleth-eppn': 'someone@brown.edu'})
+        self.assertRedirects(r, reverse('repo_direct:display', kwargs={'pid': 'test:123'}))
+        mock_method.assert_called_once_with('test:123', visibility='brown')
 
 
 class RightsFormTest(TestCase):

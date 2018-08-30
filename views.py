@@ -12,7 +12,8 @@ from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder
-
+from redis import Redis
+from rq import Queue
 from lxml.etree import XMLSyntaxError
 from eulfedora.server import Repository
 from eulfedora.models import XmlDatastreamObject
@@ -36,6 +37,7 @@ from .forms import (
 
 repo = Repository()
 bdr_server = BDRResources(settings.BDR_BASE)
+create_stream_queue = Queue(settings.CREATE_STREAM_QUEUE, connection=Redis())
 
 
 def landing(request):
@@ -169,8 +171,21 @@ def embargo(request, pid):
         )
 
 
+def _queue_stream_job(pid, visibility=None):
+    job = create_stream_queue.enqueue_call(func='stream_objects.create',
+                    args=(pid,), kwargs={'rights_setting': visibility},
+                    timeout=40000)
+    return job.id
+
+
 def create_stream(request, pid):
-    form = CreateStreamForm()
+    if request.method == 'POST':
+        form = CreateStreamForm(request.POST)
+        if form.is_valid():
+            _queue_stream_job(pid, visibility=form.cleaned_data['visibility'])
+            return HttpResponseRedirect(reverse('repo_direct:display', args=(pid,)))
+    else:
+        form = CreateStreamForm()
     return render(
             request,
             template_name='repo_direct/create_stream.html',
