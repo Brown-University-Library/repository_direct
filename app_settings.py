@@ -1,5 +1,7 @@
+import os
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+
 
 def get_app_setting(app_setting):
     """ Get the environment setting or return exception """
@@ -8,6 +10,16 @@ def get_app_setting(app_setting):
     except AttributeError:
         error_msg = "Set the %s application setting" % app_setting
         raise ImproperlyConfigured(error_msg)
+
+
+def get_env_setting(setting):
+    """ Get the environment setting or return exception """
+    try:
+        return os.environ[setting]
+    except KeyError:
+        error_msg = "Set the %s env variable" % setting
+        raise ImproperlyConfigured(error_msg)
+
 
 BDR_BASE = get_app_setting("BDR_BASE")
 REORDER_URL = '%s/api/private/reorder/' % BDR_BASE
@@ -19,6 +31,7 @@ FOLDER_API_PUBLIC = get_app_setting("FOLDER_API_PUBLIC")
 LIBRARY_PARENT_FOLDER_ID = get_app_setting("LIBRARY_PARENT_FOLDER_ID")
 DEFAULT_RIGHTS_CHOICES = get_app_setting("DEFAULT_RIGHTS_CHOICES")
 BDR_ADMIN = 'BROWN:DEPARTMENT:LIBRARY:REPOSITORY'
+CREATE_STREAM_QUEUE = get_env_setting('CREATE_STREAM_QUEUE')
 
 XML_DSIDS = [
     'MODS',
