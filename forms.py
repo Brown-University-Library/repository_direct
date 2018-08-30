@@ -5,6 +5,7 @@ from django.contrib.admin.widgets import AdminFileWidget
 
 import requests
 from eulxml.xmlmap import load_xmlobject_from_string
+from bdrcommon.identity import BDR_ADMIN
 from bdrxml.rights import RightsBuilder
 from bdrxml import irMetadata
 from crispy_forms.helper import FormHelper
@@ -77,7 +78,7 @@ class RightsMetadataEditForm(forms.Form, CommonFormHelperMixin):
             required=False,
             widget=RightsSelectWidget,
             choices=RIGHTS_CHOICES,
-            initial=settings.BDR_ADMIN
+            initial=BDR_ADMIN
     )
 
     def build_rights(self):

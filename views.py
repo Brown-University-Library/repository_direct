@@ -19,6 +19,7 @@ from eulfedora.server import Repository
 from eulfedora.models import XmlDatastreamObject
 from rdflib import URIRef
 from bdrcommon.resources import BDRResources
+from bdrcommon.identity import BDR_ADMIN
 
 from . import app_settings as settings
 from .models import BDR_Collection
@@ -107,7 +108,7 @@ def reorder(request, pid):
                 return HttpResponseRedirect(reverse('repo_direct:display', args=(pid,)))
             else:
                 raise Exception('error submitting new order')
-    bdr_item = bdr_server.item.get(pid, identities=[settings.BDR_ADMIN])
+    bdr_item = bdr_server.item.get(pid, identities=[BDR_ADMIN])
     item_data = bdr_item.data
     children = bdr_item.data['relations']['hasPart'] #[] if item has no children
     for child in children:
