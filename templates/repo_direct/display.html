@@ -3,12 +3,12 @@
 {% block content %}
 <p>
   {% if obj_type == "implicit-set" %}
-  <a class="btn btn-success btn-small" href="{% url 'repo_direct:reorder' obj.pid %}">Reorder children</a><br />
+  <a class="btn btn-success btn-small" href="{% url 'repo_direct:reorder' obj.pid %}">Reorder children</a>
   {% endif %}
-  <a class="btn btn-success btn-small" href="{% url 'repo_direct:edit_item_collection' obj.pid %}">Update collections</a><br />
-  <a class="btn btn-success btn-small" href="{% url 'repo_direct:embargo' obj.pid %}">Extend embargo</a><br />
+  <a class="btn btn-success btn-small" href="{% url 'repo_direct:edit_item_collection' obj.pid %}">Update collections</a>
+  <a class="btn btn-success btn-small" href="{% url 'repo_direct:embargo' obj.pid %}">Extend embargo</a>
   {% if audio_video_obj %}
-  <a class="btn btn-success btn-small" href="{% url 'repo_direct:create_stream' obj.pid %}">Create Streaming Derivative</a><br />
+  <a class="btn btn-success btn-small" href="{% url 'repo_direct:create_stream' obj.pid %}">Create Streaming Derivative</a>
   {% endif %}
 </p>
 <h2>Datastreams</h2>
