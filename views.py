@@ -174,7 +174,7 @@ def embargo(request, pid):
 
 def _queue_stream_job(pid, visibility=None):
     job = create_stream_queue.enqueue_call(func='stream_objects.create',
-                    args=(pid,), kwargs={'rights_setting': visibility},
+                    args=(pid,), kwargs={'visibility': visibility},
                     timeout=40000)
     return job.id
 
