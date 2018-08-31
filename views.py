@@ -184,6 +184,7 @@ def create_stream(request, pid):
         form = CreateStreamForm(request.POST)
         if form.is_valid():
             _queue_stream_job(pid, visibility=form.cleaned_data['visibility'])
+            messages.info(request, 'Queued streaming derivative job.')
             return HttpResponseRedirect(reverse('repo_direct:display', args=(pid,)))
     else:
         form = CreateStreamForm()

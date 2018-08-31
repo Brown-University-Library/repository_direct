@@ -240,6 +240,7 @@ class CreateStreamTest(TestCase):
                                 'REMOTE_USER': 'someone@brown.edu',
                                 'Shibboleth-eppn': 'someone@brown.edu'})
         self.assertRedirects(r, reverse('repo_direct:display', kwargs={'pid': 'test:123'}))
+        self.assertContains(r, 'Queued streaming derivative job')
         mock_method.assert_called_once_with('test:123', visibility='brown')
 
 
