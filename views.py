@@ -12,12 +12,14 @@ from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder
-
+from redis import Redis
+from rq import Queue
 from lxml.etree import XMLSyntaxError
 from eulfedora.server import Repository
 from eulfedora.models import XmlDatastreamObject
 from rdflib import URIRef
 from bdrcommon.resources import BDRResources
+from bdrcommon.identity import BDR_ADMIN
 
 from . import app_settings as settings
 from .models import BDR_Collection
@@ -30,11 +32,13 @@ from .forms import (
     ReorderForm,
     ItemCollectionsForm,
     EmbargoForm,
+    CreateStreamForm,
 )
 
 
 repo = Repository()
 bdr_server = BDRResources(settings.BDR_BASE)
+create_stream_queue = Queue(settings.CREATE_STREAM_QUEUE, connection=Redis())
 
 
 def landing(request):
@@ -50,13 +54,33 @@ def landing(request):
     )
 
 
+def _audio_video_obj(obj):
+    av_content_models = [
+                'info:fedora/bdr-cmodel:audio',
+                'info:fedora/bdr-cmodel:video',
+                'info:fedora/bdr-cmodel:audioMaster',
+                'info:fedora/bdr-cmodel:aiff',
+                'info:fedora/bdr-cmodel:wav',
+                'info:fedora/bdr-cmodel:mp3',
+                'info:fedora/bdr-cmodel:mp4',
+                'info:fedora/bdr-cmodel:m4v',
+                'info:fedora/bdr-cmodel:mov',
+            ]
+    for cm in av_content_models:
+        if obj.has_model(cm):
+            return True
+    return False
+
+
 def display(request, pid):
     obj = repo.get_object(pid, create=False)
     if not obj.exists:
         raise Http404
     template_info = {'obj': obj}
-    content_models = obj.get_models()
-    if URIRef('info:fedora/bdr-cmodel:implicit-set') in content_models:
+    if _audio_video_obj(obj):
+        template_info['audio_video_obj'] = True
+    implicit_set_cmodel = 'info:fedora/bdr-cmodel:implicit-set'
+    if obj.has_model(implicit_set_cmodel):
         template_info['obj_type'] = 'implicit-set'
     else:
         template_info['obj_type'] = ''
@@ -76,7 +100,7 @@ def reorder(request, pid):
     form = ReorderForm(request.POST or None)
     if request.method == 'POST':
         if form.is_valid():
-            child_pids_ordered_list = form.cleaned_data['child_pids_ordered_list'].split(u',')
+            child_pids_ordered_list = form.cleaned_data['child_pids_ordered_list'].split(',')
             pairs_param_for_api = json.dumps([(value, str(index+1)) for index, value in enumerate(child_pids_ordered_list)])
             r = requests.post(settings.REORDER_URL, data={'parent_pid': pid, 'child_pairs': pairs_param_for_api})
             if r.ok:
@@ -84,7 +108,7 @@ def reorder(request, pid):
                 return HttpResponseRedirect(reverse('repo_direct:display', args=(pid,)))
             else:
                 raise Exception('error submitting new order')
-    bdr_item = bdr_server.item.get(pid, identities=[settings.BDR_ADMIN])
+    bdr_item = bdr_server.item.get(pid, identities=[BDR_ADMIN])
     item_data = bdr_item.data
     children = bdr_item.data['relations']['hasPart'] #[] if item has no children
     for child in children:
@@ -144,6 +168,29 @@ def embargo(request, pid):
     return render(
             request,
             template_name='repo_direct/embargo.html',
+            context={'pid': pid, 'form': form}
+        )
+
+
+def _queue_stream_job(pid, visibility=None):
+    job = create_stream_queue.enqueue_call(func='stream_objects.create',
+                    args=(pid,), kwargs={'visibility': visibility},
+                    timeout=40000)
+    return job.id
+
+
+def create_stream(request, pid):
+    if request.method == 'POST':
+        form = CreateStreamForm(request.POST)
+        if form.is_valid():
+            _queue_stream_job(pid, visibility=form.cleaned_data['visibility'])
+            messages.info(request, 'Queued streaming derivative job.')
+            return HttpResponseRedirect(reverse('repo_direct:display', args=(pid,)))
+    else:
+        form = CreateStreamForm()
+    return render(
+            request,
+            template_name='repo_direct/create_stream.html',
             context={'pid': pid, 'form': form}
         )
 

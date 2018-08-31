@@ -32,6 +32,11 @@ urlpatterns = [
         name = 'embargo'
     ),
     url(
+        regex= r'^(?P<pid>[^/]+)/edit/create_stream/$',
+        view = views.create_stream,
+        name = 'create_stream'
+    ),
+    url(
         regex= r'^(?P<pid>[^/]+)/(?P<dsid>({}))/edit/$'.format('|'.join(settings.XML_DSIDS)),
         view = views.xml_edit,
         name = 'xml-edit'

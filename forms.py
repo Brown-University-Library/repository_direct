@@ -5,6 +5,7 @@ from django.contrib.admin.widgets import AdminFileWidget
 
 import requests
 from eulxml.xmlmap import load_xmlobject_from_string
+from bdrcommon.identity import BDR_ADMIN
 from bdrxml.rights import RightsBuilder
 from bdrxml import irMetadata
 from crispy_forms.helper import FormHelper
@@ -77,7 +78,7 @@ class RightsMetadataEditForm(forms.Form, CommonFormHelperMixin):
             required=False,
             widget=RightsSelectWidget,
             choices=RIGHTS_CHOICES,
-            initial=settings.BDR_ADMIN
+            initial=BDR_ADMIN
     )
 
     def build_rights(self):
@@ -128,6 +129,18 @@ class EmbargoForm(forms.Form):
         self.helper = FormHelper()
         self.helper.form_class = 'col-md-6 col-md-offset-3'
         self.helper.add_input(Submit('submit', 'Add Embargo Year'))
+
+
+class CreateStreamForm(forms.Form):
+
+    visibility = forms.ChoiceField(choices=( ('brown', 'Brown Only'), ('public', 'Public') ),
+            help_text='If you need other visibility options, please contact the BDR team.')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_class = 'col-md-6 col-md-offset-3'
+        self.helper.add_input(Submit('submit', 'Create Stream'))
 
 
 class ReorderForm(forms.Form):
