@@ -6,6 +6,7 @@ from django.test import Client, TestCase
 import responses
 from .. import app_settings as settings
 from ..forms import RightsMetadataEditForm
+from ..views import _get_folders_param_from_collections
 from workshop_common import test_data
 
 
@@ -175,6 +176,18 @@ class EditItemCollectionTest(TestCase):
                                 'Shibboleth-eppn': 'someone@brown.edu'})
         self.assertRedirects(r, reverse('repo_direct:display', kwargs={'pid': 'test:123'}))
         self.assertContains(r, 'Collection IDs for test:123 updated to &quot;1, 2&quot;')
+
+    def test_get_folders_param_from_collections(self):
+        folders_param = _get_folders_param_from_collections(['1', '2'])
+        self.assertEqual(folders_param, '1#1+2#2')
+        folders_param = _get_folders_param_from_collections(['1', ' 2'])
+        self.assertEqual(folders_param, '1#1+2#2')
+        folders_param = _get_folders_param_from_collections('')
+        self.assertEqual(folders_param, '')
+        folders_param = _get_folders_param_from_collections([])
+        self.assertEqual(folders_param, '')
+        folders_param = _get_folders_param_from_collections([''])
+        self.assertEqual(folders_param, '')
 
 
 class EmbargoTest(TestCase):

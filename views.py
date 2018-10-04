@@ -220,12 +220,16 @@ def rights_edit(request, pid, dsid):
     )
 
 
+def _get_folders_param_from_collections(collections):
+    return '+'.join([f'{col.strip()}#{col.strip()}' for col in collections if col])
+
+
 def update_ir_data(pid, collections):
     params = {'pid': pid}
     #passing collections in the form 123#123+456#456, instead of using collection name
     #   The API doesn't care about the name, but should have a better way of just passing
     #   a list of IDs.
-    folders_param = '+'.join([f'{col}#{col}' for col in collections])
+    folders_param = _get_folders_param_from_collections(collections)
     params['ir'] = json.dumps({'parameters': {'folders': folders_param}})
     r = requests.put(settings.ITEM_POST_URL, data=params)
     if not r.ok:
