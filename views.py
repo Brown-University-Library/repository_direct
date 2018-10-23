@@ -24,8 +24,6 @@ from bdrcommon.identity import BDR_ADMIN
 from . import app_settings as settings
 from .models import BDR_Collection
 from .forms import (
-    RightsMetadataEditForm,
-    IrMetadataEditForm,
     RepoLandingForm,
     FileReplacementForm,
     EditXMLForm,

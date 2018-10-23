@@ -1,24 +1,15 @@
-"""Forms for repo application"""
 from django import forms
 from django.forms.widgets import CheckboxSelectMultiple, HiddenInput
 from django.contrib.admin.widgets import AdminFileWidget
 
 import requests
 from eulxml.xmlmap import load_xmlobject_from_string
-from bdrcommon.identity import BDR_ADMIN
-from bdrxml.rights import RightsBuilder
 from bdrxml import irMetadata
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from django_ace import AceWidget
-from django_select2 import forms as s2forms
 
 from . import app_settings as settings
-
-RIGHTS_CHOICES = zip(
-        settings.DEFAULT_RIGHTS_CHOICES,
-        settings.DEFAULT_RIGHTS_CHOICES
-    )
 
 
 class FileReplacementForm( forms.Form ):
@@ -41,63 +32,6 @@ class EditXMLForm( forms.Form , CommonFormHelperMixin):
 
 class RepoLandingForm(forms.Form):
     pid = forms.CharField(error_messages={'required': 'Please enter a pid'})
-
-
-class RightsSelectWidgetMixin(object):
-    def build_attrs(self, *args, **kwargs):
-        self.attrs.setdefault('data-minimum-input-length', 0)
-        return super(RightsSelectWidgetMixin, self).build_attrs(*args, **kwargs)
-
-
-class RightsSelectWidget(RightsSelectWidgetMixin, s2forms.Select2TagWidget):
-    pass
-
-
-class RightsMetadataEditForm(forms.Form, CommonFormHelperMixin):
-    discover_and_read = forms.MultipleChoiceField(
-            required=False,
-            widget=RightsSelectWidget,
-            choices = RIGHTS_CHOICES,
-    )
-    discover_only = forms.MultipleChoiceField(
-            required=False,
-            widget=RightsSelectWidget,
-            choices = RIGHTS_CHOICES,
-    )
-    read_only = forms.MultipleChoiceField(
-            required=False,
-            widget=RightsSelectWidget,
-            choices = RIGHTS_CHOICES,
-    )
-    edit_rights = forms.MultipleChoiceField(
-            required=False,
-            widget=RightsSelectWidget,
-            choices = RIGHTS_CHOICES,
-    )
-    owners = forms.MultipleChoiceField(
-            required=False,
-            widget=RightsSelectWidget,
-            choices=RIGHTS_CHOICES,
-            initial=BDR_ADMIN
-    )
-
-    def build_rights(self):
-        rights_builder = RightsBuilder()
-        [rights_builder.addReader(identity) for identity in self.cleaned_data['discover_and_read']]
-        [rights_builder.addDiscoverer(identity) for identity in self.cleaned_data['discover_and_read']]
-        [rights_builder.addReader(identity) for identity in self.cleaned_data['read_only']]
-        [rights_builder.addDiscoverer(identity) for identity in self.cleaned_data['discover_only']]
-        [rights_builder.addEditor(identity) for identity in self.cleaned_data['edit_rights']]
-        [rights_builder.addOwner(identity) for identity in self.cleaned_data['owners']]
-        return rights_builder.build()
-
-
-class IrMetadataEditForm(forms.Form, CommonFormHelperMixin):
-    collections = forms.MultipleChoiceField(
-            required=False,
-            choices=[(0,"NULL_COLLECTION"),],
-            widget=s2forms.Select2MultipleWidget
-    )
 
 
 class ItemCollectionsForm(forms.Form):

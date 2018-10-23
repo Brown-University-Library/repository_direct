@@ -34,6 +34,8 @@ CREATE_STREAM_QUEUE = get_env_setting('CREATE_STREAM_QUEUE')
 
 XML_DSIDS = [
     'MODS',
+    'rightsMetadata',
+    'irMetadata',
     'RELS-EXT',
     'RELS-INT',
     'METS',
@@ -52,7 +54,7 @@ CONTENT_DSIDS = [
     #Content
     "content",
 
-    #binarey metadata
+    #binary metadata
     "META_MRC",
 
     #Image
@@ -97,7 +99,5 @@ CONTENT_DSIDS = [
     "DJVU", "DJVU_XML",
     "torrent",
 ]
-RIGHTS_ID = "rightsMetadata"
-IR_ID = "irMetadata"
-ALL_DSIDS = XML_DSIDS + CONTENT_DSIDS + [RIGHTS_ID , IR_ID]
+ALL_DSIDS = XML_DSIDS + CONTENT_DSIDS
 

@@ -5,7 +5,6 @@ from django.core.urlresolvers import reverse
 from django.test import Client, TestCase
 import responses
 from .. import app_settings as settings
-from ..forms import RightsMetadataEditForm
 from ..views import _get_folders_param_from_collections
 from workshop_common import test_data
 
@@ -55,7 +54,7 @@ def responses_setup_for_display_view(object_type=None):
                   status=200,
                   content_type='text/xml'
                 )
-    for ds_id in ['DC', 'RELS-EXT', 'rightsMetadata', 'MODS']:
+    for ds_id in ['DC', 'RELS-EXT', 'rightsMetadata', 'MODS', 'irMetadata']:
         responses.add(responses.GET, 'http://testserver/fedora/objects/test:123/datastreams/%s' % ds_id,
                       body=test_data.DS_PROFILE_PATTERN.format(ds_id=ds_id, ds_state='A'),
                       status=200,
@@ -108,7 +107,7 @@ class DisplayTest(TestCase):
                       status=200,
                       content_type='text/xml'
                     )
-        for ds_id in ['DC', 'RELS-EXT', 'rightsMetadata']:
+        for ds_id in ['DC', 'RELS-EXT', 'rightsMetadata', 'irMetadata']:
             responses.add(responses.GET, 'http://testserver/fedora/objects/test:123/datastreams/%s' % ds_id,
                           body=test_data.DS_PROFILE_PATTERN.format(ds_id=ds_id, ds_state='A'),
                           status=200,
@@ -257,63 +256,6 @@ class CreateStreamTest(TestCase):
         mock_method.assert_called_once_with('test:123', visibility='brown')
 
 
-class RightsFormTest(TestCase):
-
-    def setUp(self):
-        User.objects.create_user(username='x@brown.edu')
-        self.rights_edit_url = reverse('repo_direct:rights-edit',
-                    kwargs={
-                        'pid': 'test:123',
-                        'dsid': 'rightsMetadata'
-                        }
-                )
-
-    def test_rights_editing_uses_rights_form(self):
-        response = self.client.get(self.rights_edit_url,
-                                **{
-                                    'REMOTE_USER': 'x@brown.edu',
-                                    'Shibboleth-eppn': 'x@brown.edu'})
-        self.assertIsInstance(response.context['form'], RightsMetadataEditForm)
-
-    def test_rights_editing_form_valid_data(self):
-        data = { 'discover_and_read': ['BDR_PUBLIC','BROWN:COMMUNITY:ALL']}
-        form = RightsMetadataEditForm(data)
-        self.assertTrue(form.is_valid())
-
-    def test_rights_editing_form_invalid_choice(self):
-        data = { 'discover_and_read': ['not valid']}
-        form = RightsMetadataEditForm(data)
-        self.assertFalse(form.is_valid())
-        self.assertEquals(
-                form.errors['discover_and_read'],
-                ['Select a valid choice. not valid is not one of the available choices.']
-        )
-
-    def test_rights_editing_form_invalid_string(self):
-        data = { 'discover_and_read': 'invalid string'}
-        form = RightsMetadataEditForm(data)
-        self.assertFalse(form.is_valid())
-        self.assertEquals(
-                form.errors['discover_and_read'],
-                [u"Enter a list of values."]
-        )
-
-    @responses.activate
-    def test_rights_editing_post(self):
-        responses.add(responses.PUT, 'http://testserver/api/private/items/',
-                      body=json.dumps({}),
-                      status=200,
-                      content_type='application/json'
-                    )
-        data = { 'discover_and_read': ['BDR_PUBLIC','BROWN:COMMUNITY:ALL']}
-        response = self.client.post(self.rights_edit_url, data,
-                                **{
-                                    'REMOTE_USER': 'x@brown.edu',
-                                    'Shibboleth-eppn': 'x@brown.edu'})
-        redirect_url = reverse('repo_direct:display', kwargs={'pid': 'test:123'})
-        self.assertRedirects(response, redirect_url, fetch_redirect_response=False)
-
-
 class DatastreamEditorTest(TestCase):
 
     def setUp(self):
@@ -334,17 +276,33 @@ class DatastreamEditorTest(TestCase):
         )
         self.assertContains(r, "Edit test:123's {} datastream".format(dsid))
 
-    def test_rights_edit(self):
-        self._common_edit_test('rights-edit', 'rightsMetadata')
+    @responses.activate
+    def test_rights_xml_edit(self):
+        responses.add(responses.GET, 'http://testserver/fedora/objects/test:123/datastreams',
+                  body=test_data.DATASTREAMS_XML,
+                  status=200,
+                  content_type='text/xml'
+                )
+        responses.add(responses.GET, 'http://testserver/fedora/objects/test:123/datastreams/rightsMetadata/content',
+                      body=test_data.RIGHTS_XML,
+                      status=200,
+                      content_type='text/xml'
+                    )
+        self._common_edit_test('xml-edit', 'rightsMetadata')
 
     @responses.activate
-    def test_ir_metadata_edit(self):
-        responses.add(responses.GET, 'http://testserver/api/collections/468/',
-                      body=test_data.LIB_API_DATA,
+    def test_ir_metadata_xml_edit(self):
+        responses.add(responses.GET, 'http://testserver/fedora/objects/test:123/datastreams',
+                  body=test_data.DATASTREAMS_XML,
+                  status=200,
+                  content_type='text/xml'
+                )
+        responses.add(responses.GET, 'http://testserver/fedora/objects/test:123/datastreams/irMetadata/content',
+                      body=test_data.IR_METADATA_XML,
                       status=200,
-                      content_type='application/json'
+                      content_type='text/xml'
                     )
-        self._common_edit_test('ir-edit', 'irMetadata')
+        self._common_edit_test('xml-edit', 'irMetadata')
 
     def test_mods_xml_edit(self):
         url = reverse('repo_direct:xml-edit', kwargs={'pid': 'test:123', 'dsid': 'MODS'})
@@ -355,31 +313,4 @@ class DatastreamEditorTest(TestCase):
                 }
             )
         self.assertEqual(r.status_code, 405)
-
-
-class RightsEditXmlTest(TestCase):
-
-    @responses.activate
-    def test_get(self):
-        responses.add(responses.GET, 'http://testserver/fedora/objects/test:123/datastreams',
-                      body=test_data.DATASTREAMS_XML,
-                      status=200,
-                      content_type='text/xml'
-                    )
-        responses.add(responses.GET, 'http://testserver/fedora/objects/test:123/datastreams/rightsMetadata/content',
-                      body=test_data.RIGHTS_XML,
-                      status=200,
-                      content_type='text/xml'
-                    )
-        User.objects.create_user(username='x@brown.edu')
-        url = reverse('repo_direct:rights-edit-xml',
-                kwargs={'pid': 'test:123', 'dsid': 'rightsMetadata'})
-        r = self.client.get(url,
-                **{
-                    'REMOTE_USER': 'x@brown.edu',
-                    'Shibboleth-eppn': 'x@brown.edu'
-                }
-        )
-        self.assertContains(r, "Edit test:123's rightsMetadata datastream")
-        self.assertContains(r, 'Xml content')
 
