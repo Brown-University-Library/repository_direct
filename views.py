@@ -12,8 +12,6 @@ from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder
-from redis import Redis
-from rq import Queue
 from lxml.etree import XMLSyntaxError
 from eulfedora.server import Repository
 from eulfedora.models import XmlDatastreamObject
@@ -36,7 +34,6 @@ from .forms import (
 
 repo = Repository()
 bdr_server = BDRResources(settings.BDR_BASE)
-create_stream_queue = Queue(settings.CREATE_STREAM_QUEUE, connection=Redis())
 
 
 def landing(request):
