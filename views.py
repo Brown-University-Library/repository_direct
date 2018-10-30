@@ -19,7 +19,7 @@ from eulfedora.server import Repository
 from eulfedora.models import XmlDatastreamObject
 from rdflib import URIRef
 from bdrcommon.resources import BDRResources
-from bdrcommon.identity import BDR_ADMIN
+from bdrcommon.identity import BDR_ADMIN, BDR_ACCESS
 
 from . import app_settings as settings
 from .models import BDR_Collection
@@ -170,11 +170,14 @@ def embargo(request, pid):
         )
 
 
-def _queue_stream_job(pid, visibility=None):
-    job = create_stream_queue.enqueue_call(func='stream_objects.create',
-                    args=(pid,), kwargs={'visibility': visibility},
-                    timeout=40000)
-    return job.id
+def _queue_stream_job(pid, visibility):
+    params = {'pid': pid}
+    params['generate_derivatives'] = json.dumps({'stream': {'rights': visibility}})
+    r = requests.put(settings.ITEM_POST_URL, data=params)
+    if not r.ok:
+        err_msg = 'error requesting stream job to be queued:\n'
+        err_msg += f'{r.status_code} - {r.text}'
+        raise Exception(err_msg)
 
 
 def create_stream(request, pid):

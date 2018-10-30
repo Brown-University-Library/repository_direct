@@ -5,6 +5,7 @@ from django.contrib.admin.widgets import AdminFileWidget
 import requests
 from eulxml.xmlmap import load_xmlobject_from_string
 from bdrxml import irMetadata
+from bdrcommon.identity import BDR_ACCESS
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from django_ace import AceWidget
@@ -67,7 +68,7 @@ class EmbargoForm(forms.Form):
 
 class CreateStreamForm(forms.Form):
 
-    visibility = forms.ChoiceField(choices=( ('brown', 'Brown Only'), ('public', 'Public') ),
+    visibility = forms.ChoiceField(choices=( (BDR_ACCESS.brown_only.name, 'Brown Only'), (BDR_ACCESS.public.name, 'Public') ),
             help_text='If you need other visibility options, please contact the BDR team.')
 
     def __init__(self, *args, **kwargs):
