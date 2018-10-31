@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import Client, TestCase
 import responses
+from bdrcommon.identity import BDR_ACCESS
 from .. import app_settings as settings
 from ..views import _get_folders_param_from_collections
 from workshop_common import test_data
@@ -247,13 +248,13 @@ class CreateStreamTest(TestCase):
     def test_post(self, mock_method):
         responses_setup_for_display_view()
         User.objects.create(username='someone@brown.edu', password='x')
-        post_data = {'visibility': 'brown'}
+        post_data = {'visibility': BDR_ACCESS.brown_only.name}
         r = self.client.post(self.url, post_data, follow=True, **{
                                 'REMOTE_USER': 'someone@brown.edu',
                                 'Shibboleth-eppn': 'someone@brown.edu'})
         self.assertRedirects(r, reverse('repo_direct:display', kwargs={'pid': 'test:123'}))
         self.assertContains(r, 'Queued streaming derivative job')
-        mock_method.assert_called_once_with('test:123', visibility='brown')
+        mock_method.assert_called_once_with('test:123', visibility=BDR_ACCESS.brown_only.name)
 
 
 class DatastreamEditorTest(TestCase):
