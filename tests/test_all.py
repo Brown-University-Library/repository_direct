@@ -1,4 +1,5 @@
 import json
+import pathlib
 from unittest.mock import patch
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
@@ -8,6 +9,9 @@ from bdrcommon.identity import BDR_ACCESS
 from .. import app_settings as settings
 from ..views import _get_folders_param_from_collections
 from workshop_common import test_data
+
+
+CUR_DIR = pathlib.Path(__file__).parent
 
 
 class AccessTest(TestCase):
@@ -255,6 +259,61 @@ class CreateStreamTest(TestCase):
         self.assertRedirects(r, reverse('repo_direct:display', kwargs={'pid': 'test:123'}))
         self.assertContains(r, 'Queued streaming derivative job')
         mock_method.assert_called_once_with('test:123', visibility=BDR_ACCESS.brown_only.name)
+
+
+class AddContentFileTest(TestCase):
+
+    def setUp(self):
+        self.url = reverse('repo_direct:add_content_file', kwargs={'pid': 'test:123'})
+
+    def test_auth(self):
+        r = self.client.get(self.url, **{
+                                'REMOTE_URL': 'someone@brown.edu',
+                                'Shibboleth-eppn': 'someone@brown.edu'})
+        self.assertRedirects(r, '%s?next=%s' % (reverse('login'), self.url.replace(':', '%3A')))
+
+    def test_get(self):
+        User.objects.create(username='someone@brown.edu', password='x')
+        r = self.client.get(self.url, **{
+                                'REMOTE_USER': 'someone@brown.edu',
+                                'Shibboleth-eppn': 'someone@brown.edu'})
+        self.assertEqual(r.status_code, 200)
+
+    @responses.activate
+    def test_post_thumbnail(self):
+        responses_setup_for_display_view()
+        responses.add(responses.PUT, 'http://testserver/api/private/items/',
+                      body=json.dumps({}),
+                      status=200,
+                      content_type='application/json'
+                    )
+        User.objects.create(username='someone@brown.edu', password='x')
+        test_file_path = CUR_DIR / 'test_files' / 'thumb.jpg'
+        with test_file_path.open(mode='rb') as f:
+            post_data = {'content_file': f, 'is_thumbnail': 'on'}
+            r = self.client.post(self.url, post_data, follow=True, **{
+                                'REMOTE_USER': 'someone@brown.edu',
+                                'Shibboleth-eppn': 'someone@brown.edu'})
+        self.assertRedirects(r, reverse('repo_direct:display', kwargs={'pid': 'test:123'}))
+        self.assertContains(r, 'Added thumbnail')
+
+    @responses.activate
+    def test_post_other_file(self):
+        responses_setup_for_display_view()
+        responses.add(responses.PUT, 'http://testserver/api/private/items/',
+                      body=json.dumps({}),
+                      status=200,
+                      content_type='application/json'
+                    )
+        User.objects.create(username='someone@brown.edu', password='x')
+        test_file_path = CUR_DIR / 'test_files' / 'image.png'
+        with test_file_path.open(mode='rb') as f:
+            post_data = {'content_file': f}
+            r = self.client.post(self.url, post_data, follow=True, **{
+                                'REMOTE_USER': 'someone@brown.edu',
+                                'Shibboleth-eppn': 'someone@brown.edu'})
+        self.assertRedirects(r, reverse('repo_direct:display', kwargs={'pid': 'test:123'}))
+        self.assertContains(r, 'Added content')
 
 
 class DatastreamEditorTest(TestCase):

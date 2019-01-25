@@ -37,6 +37,11 @@ urlpatterns = [
         name = 'create_stream'
     ),
     url(
+        regex= r'^(?P<pid>[^/]+)/edit/add_content_file/$',
+        view = views.add_content_file,
+        name = 'add_content_file'
+    ),
+    url(
         regex= r'^(?P<pid>[^/]+)/(?P<dsid>({}))/edit/$'.format('|'.join(settings.XML_DSIDS)),
         view = views.xml_edit,
         name = 'xml-edit'

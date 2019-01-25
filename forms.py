@@ -78,6 +78,18 @@ class CreateStreamForm(forms.Form):
         self.helper.add_input(Submit('submit', 'Create Stream'))
 
 
+class AddContentFileForm(forms.Form):
+
+    content_file = forms.FileField(required=True)
+    is_thumbnail = forms.BooleanField(required=False, help_text='Check this if your content file is a thumbnail.')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_class = 'col-md-6 col-md-offset-3'
+        self.helper.add_input(Submit('submit', 'Add Content File'))
+
+
 class ReorderForm(forms.Form):
     child_pids_ordered_list = forms.CharField(required=True, widget=HiddenInput)
 
