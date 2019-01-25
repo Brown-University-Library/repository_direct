@@ -12,6 +12,11 @@ urlpatterns = [
         name = 'landing'
     ),
     url(
+        regex= r'^new/$',
+        view = views.new_object,
+        name = 'new_object'
+    ),
+    url(
         regex= r'^(?P<pid>[^/]+)/$',
         view = views.display,
         name = 'display'

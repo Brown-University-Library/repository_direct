@@ -30,6 +30,7 @@ from .forms import (
     EmbargoForm,
     CreateStreamForm,
     AddContentFileForm,
+    NewObjectForm,
 )
 
 
@@ -48,6 +49,33 @@ def landing(request):
         template_name='repo_direct/landing.html',
         context={'form': form}
     )
+
+
+def _post_new_object(form_cleaned_data):
+    params = {}
+    params['mods'] = json.dumps({'parameters': {'title': form_cleaned_data}})
+    params['rights'] = json.dumps({'parameters': {'owner_id': BDR_ADMIN}})
+    r = requests.post(settings.ITEM_POST_URL, data=params)
+    if r.ok:
+        return r.json()['pid']
+    else:
+        raise Exception(f'error posting new object: {r.status_code} - {r.content.decode("utf8")}')
+
+
+def new_object(request):
+    if request.method == 'POST':
+        form = NewObjectForm(request.POST)
+        if form.is_valid():
+            pid = _post_new_object(form.cleaned_data)
+            messages.info(request, f'New object {pid} created')
+            return HttpResponseRedirect(reverse('repo_direct:display', args=(pid,)))
+    else:
+        form = NewObjectForm()
+    return render(
+            request,
+            template_name='repo_direct/new_object.html',
+            context={'form': form}
+        )
 
 
 def _audio_video_obj(obj):
