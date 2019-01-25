@@ -29,6 +29,7 @@ from .forms import (
     ItemCollectionsForm,
     EmbargoForm,
     CreateStreamForm,
+    AddContentFileForm,
 )
 
 
@@ -193,6 +194,47 @@ def create_stream(request, pid):
         )
 
 
+def _post_content_file(pid, dsid, content_file, overwrite=False):
+    params = {'pid': pid}
+    content_stream = {'path': content_file.name}
+    if dsid:
+        content_stream['dsID'] = dsid
+    params['content_streams'] = json.dumps([content_stream])
+    if overwrite:
+        params['overwrite_content'] = 'yes'
+    params[content_file.name] = (content_file.name, content_file)
+    m = MultipartEncoder(fields=params)
+    r = requests.put(settings.ITEM_POST_URL, data=m, headers={'Content-Type': m.content_type})
+    return r
+
+
+def add_content_file(request, pid):
+    if request.method == 'POST':
+        form = AddContentFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            content_file = request.FILES['content_file']
+            if form.cleaned_data['is_thumbnail']:
+                dsid = 'thumbnail'
+                info_msg = 'Added thumbnail'
+            else:
+                dsid = None
+                info_msg = 'Added content'
+            r = _post_content_file(pid, dsid=dsid, content_file=content_file)
+            if not r.ok:
+                err_msg = f'error saving content\n'
+                err_msg += f'{r.status_code} - {r.text}'
+                return HttpResponseServerError(err_msg)
+            messages.info(request, info_msg)
+            return HttpResponseRedirect(reverse('repo_direct:display', args=(pid,)))
+    else:
+        form = AddContentFileForm()
+    return render(
+            request,
+            template_name='repo_direct/add_content_file.html',
+            context={'pid': pid, 'form': form}
+        )
+
+
 @login_required
 def rights_edit(request, pid, dsid):
     form = RightsMetadataEditForm(request.POST or None)
@@ -270,14 +312,7 @@ def file_edit(request, pid, dsid):
         obj = repo.get_object(pid,create=False)
         if dsid in obj.ds_list:
             uploaded_file = request.FILES['replacement_file']
-            file_name = uploaded_file.name
-            params = {'pid': pid}
-            params['content_streams'] = json.dumps(
-                    [{'dsID': dsid, 'file_name': file_name}])
-            params['overwrite_content'] = 'yes'
-            params[file_name] = (file_name, uploaded_file)
-            m = MultipartEncoder(fields=params)
-            r = requests.put(settings.ITEM_POST_URL, data=m, headers={"Content-Type": m.content_type})
+            r = _post_content_file(pid, dsid=dsid, content_file=uploaded_file, overwrite=True)
             if not r.ok:
                 err_msg = f'error saving {dsid} content\n'
                 err_msg += f'{r.status_code} - {r.text}'
