@@ -10,6 +10,7 @@
   {% if audio_video_obj %}
   <a class="btn btn-success btn-small" href="{% url 'repo_direct:create_stream' obj.pid %}">Create Streaming Derivative</a>
   {% endif %}
+  <a class="btn btn-success btn-small" href="{% url 'repo_direct:add_content_file' obj.pid %}">Add Content File</a>
 </p>
 <h2>Datastreams</h2>
 <table class="table table-striped">
