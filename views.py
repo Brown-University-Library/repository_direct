@@ -53,7 +53,7 @@ def landing(request):
 
 def _post_new_object(form_cleaned_data):
     params = {}
-    params['mods'] = json.dumps({'parameters': {'title': form_cleaned_data}})
+    params['mods'] = json.dumps({'parameters': {'title': form_cleaned_data['title']}})
     params['rights'] = json.dumps({'parameters': {'owner_id': BDR_ADMIN}})
     r = requests.post(settings.ITEM_POST_URL, data=params)
     if r.ok:
