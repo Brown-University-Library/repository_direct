@@ -1,4 +1,5 @@
 import json
+import os
 from django.core.mail import mail_admins
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
@@ -11,7 +12,6 @@ from django.http import (
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 import requests
-from requests_toolbelt.multipart.encoder import MultipartEncoder
 from lxml.etree import XMLSyntaxError
 from eulfedora.server import Repository
 from eulfedora.models import XmlDatastreamObject
@@ -196,15 +196,22 @@ def create_stream(request, pid):
 
 def _post_content_file(pid, dsid, content_file, overwrite=False):
     params = {'pid': pid}
+    if overwrite:
+        params['overwrite_content'] = 'yes'
     content_stream = {'file_name': content_file.name}
     if dsid:
         content_stream['dsID'] = dsid
-    params['content_streams'] = json.dumps([content_stream])
-    if overwrite:
-        params['overwrite_content'] = 'yes'
-    params[content_file.name] = (content_file.name, content_file)
-    m = MultipartEncoder(fields=params)
-    r = requests.put(settings.ITEM_POST_URL, data=m, headers={'Content-Type': m.content_type})
+    #handle larger files that get written to a tmp directory
+    if hasattr(content_file, 'temporary_file_path'):
+        file_path = content_file.temporary_file_path()
+        os.chmod(file_path, 0o644)
+        content_stream['path'] = file_path
+        params['content_streams'] = json.dumps([content_stream])
+        r = requests.put(settings.ITEM_POST_URL, data=params)
+    else: #handle smaller in-memory files
+        params['content_streams'] = json.dumps([content_stream])
+        files = {content_file.name: content_file}
+        r = requests.put(settings.ITEM_POST_URL, data=params, files=files)
     return r
 
 
