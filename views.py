@@ -196,7 +196,7 @@ def create_stream(request, pid):
 
 def _post_content_file(pid, dsid, content_file, overwrite=False):
     params = {'pid': pid}
-    content_stream = {'path': content_file.name}
+    content_stream = {'file_name': content_file.name}
     if dsid:
         content_stream['dsID'] = dsid
     params['content_streams'] = json.dumps([content_stream])
