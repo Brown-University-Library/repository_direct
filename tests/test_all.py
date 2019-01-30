@@ -99,7 +99,7 @@ class NewObjectTest(TestCase):
                       content_type='application/json'
                     )
         User.objects.create(username='someone@brown.edu', password='x')
-        data = {'title': 'New object'}
+        data = {'title': 'New object', 'collection_id': 123}
         r = self.client.post(self.url, data, follow=True, **{
                                 'REMOTE_USER': 'someone@brown.edu',
                                 'Shibboleth-eppn': 'someone@brown.edu'})

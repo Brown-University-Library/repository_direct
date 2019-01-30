@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from django.core.mail import mail_admins
 from django.core.urlresolvers import reverse
@@ -36,6 +37,7 @@ from .forms import (
 
 repo = Repository()
 bdr_server = BDRResources(settings.BDR_BASE)
+logger = logging.getLogger('ingest')
 
 
 def landing(request):
@@ -54,6 +56,8 @@ def landing(request):
 def _post_new_object(form_cleaned_data):
     params = {}
     params['mods'] = json.dumps({'parameters': {'title': form_cleaned_data['title']}})
+    if 'collection_id' in form_cleaned_data:
+        params['ir'] = json.dumps({'parameters': {'ir_collection_id': form_cleaned_data['collection_id']}})
     params['rights'] = json.dumps({'parameters': {'owner_id': BDR_ADMIN}})
     r = requests.post(settings.ITEM_POST_URL, data=params)
     if r.ok:
@@ -67,6 +71,7 @@ def new_object(request):
         form = NewObjectForm(request.POST)
         if form.is_valid():
             pid = _post_new_object(form.cleaned_data)
+            logger.info(f'{request.user.username} created new object {pid}')
             messages.info(request, f'New object {pid} created')
             return HttpResponseRedirect(reverse('repo_direct:display', args=(pid,)))
     else:

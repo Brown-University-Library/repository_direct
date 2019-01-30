@@ -93,6 +93,7 @@ class AddContentFileForm(forms.Form):
 class NewObjectForm(forms.Form):
 
     title = forms.CharField()
+    collection_id = forms.IntegerField(min_value=1, required=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
