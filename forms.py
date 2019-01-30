@@ -90,6 +90,18 @@ class AddContentFileForm(forms.Form):
         self.helper.add_input(Submit('submit', 'Add Content File'))
 
 
+class NewObjectForm(forms.Form):
+
+    title = forms.CharField()
+    collection_id = forms.IntegerField(min_value=1, required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_class = 'col-md-6 col-md-offset-3'
+        self.helper.add_input(Submit('submit', 'Create New Object'))
+
+
 class ReorderForm(forms.Form):
     child_pids_ordered_list = forms.CharField(required=True, widget=HiddenInput)
 
