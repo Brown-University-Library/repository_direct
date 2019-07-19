@@ -3,7 +3,6 @@ import logging
 import os
 from django.core.mail import mail_admins
 from django.urls import reverse
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import (
     HttpResponseRedirect,
@@ -124,7 +123,6 @@ def display(request, pid):
     )
 
 
-@login_required
 def reorder(request, pid):
     form = ReorderForm(request.POST or None)
     if request.method == 'POST':
@@ -275,7 +273,6 @@ def add_content_file(request, pid):
         )
 
 
-@login_required
 def rights_edit(request, pid, dsid):
     form = RightsMetadataEditForm(request.POST or None)
     if form.is_valid():
@@ -345,7 +342,6 @@ def ir_edit(request, pid, dsid):
     )
 
 
-@login_required
 def file_edit(request, pid, dsid):
     form = FileReplacementForm(request.POST or None, request.FILES or None)
     if form.is_valid():
@@ -375,7 +371,6 @@ def file_edit(request, pid, dsid):
     )
 
 
-@login_required
 @require_http_methods(['GET', 'POST'])
 def xml_edit(request, pid, dsid):
     request.encoding = 'utf-8'
