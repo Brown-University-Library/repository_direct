@@ -409,3 +409,6 @@ class DatastreamEditorTest(TestCase):
             )
         self.assertEqual(r.status_code, 405)
 
+    def test_edit_content_datastream(self):
+        self._common_edit_test('file-edit', 'VIDEO-MASTER')
+
