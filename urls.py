@@ -53,7 +53,7 @@ urlpatterns = [
         name = 'xml-edit'
     ),
     url(
-        regex= r'^(?P<pid>[^/]+)/(?P<dsid>({}))/edit/$'.format( '|'.join(settings.CONTENT_DSIDS)),
+        regex= r'^(?P<pid>[^/]+)/(?P<dsid>[\w-]+)/edit/$',
         view = login_required(views.file_edit),
         name = 'file-edit'
     ),
@@ -63,7 +63,7 @@ urlpatterns = [
         name = 'audit'
     ),
     url(
-        regex= r'^(?P<pid>[^/]+)/(?P<dsid>({}))/$'.format('|'.join(settings.ALL_DSIDS)),
+        regex= r'^(?P<pid>[^/]+)/(?P<dsid>[\w-]+)/$',
         view = login_required(eulviews.raw_datastream),
         name = 'raw-datastream',
     ),
