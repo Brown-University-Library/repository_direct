@@ -1,16 +1,19 @@
 {% extends 'repo_direct/repo_direct_base.html' %}
-{% block page_title %}View or edit {{obj.pid}}{% endblock %}
+{% block title %} | Edit {{obj.pid}}{% endblock title %}
+{% block page_title %}View or edit {{obj.pid}}<br/>
+<small><a href="/studio/item/{{obj.pid}}/">View in Studio</a></small>{% endblock %}
 {% block content %}
+<h2>Actions</h2>
 <p>
   {% if obj_type == "implicit-set" %}
-  <a class="btn btn-success btn-small" href="{% url 'repo_direct:reorder' obj.pid %}">Reorder children</a>
+  <a class="btn btn-success" href="{% url 'repo_direct:reorder' obj.pid %}">Reorder children</a>
   {% endif %}
-  <a class="btn btn-success btn-small" href="{% url 'repo_direct:edit_item_collection' obj.pid %}">Update collections</a>
-  <a class="btn btn-success btn-small" href="{% url 'repo_direct:embargo' obj.pid %}">Extend embargo</a>
+  <a class="btn btn-success" href="{% url 'repo_direct:edit_item_collection' obj.pid %}">Update collections</a>
+  <a class="btn btn-success" href="{% url 'repo_direct:embargo' obj.pid %}">Extend embargo</a>
   {% if audio_video_obj %}
-  <a class="btn btn-success btn-small" href="{% url 'repo_direct:create_stream' obj.pid %}">Create Streaming Derivative</a>
+  <a class="btn btn-success" href="{% url 'repo_direct:create_stream' obj.pid %}">Create Streaming Derivative</a>
   {% endif %}
-  <a class="btn btn-success btn-small" href="{% url 'repo_direct:add_content_file' obj.pid %}">Add Content File</a>
+  <a class="btn btn-success" href="{% url 'repo_direct:add_content_file' obj.pid %}">Add Content File</a>
 </p>
 <h2>Datastreams</h2>
 <table class="table table-striped">
@@ -27,8 +30,8 @@
       <th>{{forloop.counter}}</th>
       <td>{{k}}</td>
       <td>
-        <a class="btn btn-primary btn-small" href="{{k}}/">View</a>
-        <a class="btn btn-success btn-small" href="{{k}}/edit/">Edit</a>
+        <a class="btn btn-primary" href="{{k}}/">View</a>
+        <a class="btn btn-success" href="{{k}}/edit/">Edit</a>
       </td>
     </tr>
     {% endfor %}
