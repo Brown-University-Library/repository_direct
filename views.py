@@ -409,7 +409,7 @@ def xml_edit(request, pid, dsid):
         if dsid in obj.ds_list:
             datastream_obj = obj.getDatastreamObject(dsid, XmlDatastreamObject)
             try:
-                xml_content = datastream_obj.content.serialize(pretty=True)
+                xml_content = datastream_obj.content.serialize(pretty=True).decode('utf8')
             except XMLSyntaxError as e:
                 import traceback
                 subject = 'error parsing XML for %s %s' % (pid, dsid)
