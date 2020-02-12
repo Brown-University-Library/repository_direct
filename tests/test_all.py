@@ -118,8 +118,9 @@ class DisplayTest(TestCase):
                                 'REMOTE_USER': 'x@brown.edu',
                                 'Shibboleth-eppn': 'x@brown.edu'})
         self.assertEqual(r.status_code, 200)
-        self.assertInHTML('<a class="btn btn-primary btn-small" href="rightsMetadata/">View</a>', r.content.decode('utf8'))
-        self.assertInHTML('<a class="btn btn-success btn-small" href="MODS/edit/">Edit</a>', r.content.decode('utf8'))
+        response_text = r.content.decode('utf8')
+        self.assertInHTML('<a class="btn btn-primary" href="rightsMetadata/">View</a>', response_text)
+        self.assertInHTML('<a class="btn btn-success" href="MODS/edit/">Edit</a>', response_text)
         self.assertContains(r, 'Update collections')
         self.assertContains(r, 'Extend embargo')
         self.assertContains(r, 'Create Streaming Derivative')
@@ -169,8 +170,9 @@ class DisplayTest(TestCase):
                                 'REMOTE_USER': 'x@brown.edu',
                                 'Shibboleth-eppn': 'x@brown.edu'})
         self.assertEqual(r.status_code, 200)
-        self.assertInHTML('<a class="btn btn-primary btn-small" href="rightsMetadata/">View</a>', r.content.decode('utf8'))
-        self.assertInHTML('<td>MODS deleted</td>', r.content.decode('utf8'))
+        response_text = r.content.decode('utf8')
+        self.assertInHTML('<a class="btn btn-primary" href="rightsMetadata/">View</a>', response_text)
+        self.assertInHTML('<td>MODS deleted</td>', response_text)
 
 
 class EditItemCollectionTest(TestCase):
@@ -411,4 +413,58 @@ class DatastreamEditorTest(TestCase):
 
     def test_edit_content_datastream(self):
         self._common_edit_test('file-edit', 'VIDEO-MASTER')
+
+    @responses.activate
+    def test_edit_content_xml_datastream(self):
+        #eg. DC, archiveMETS, ... - datastreams that aren't special parameters for the API
+        responses.add(responses.GET, 'http://testserver/fedora/objects/test:123/datastreams',
+                  body=test_data.DATASTREAMS_XML,
+                  status=200,
+                  content_type='text/xml'
+                )
+        responses.add(responses.GET, 'http://testserver/fedora/objects/test:123/datastreams/DC/content',
+                      body=test_data.DC_XML.format(PID='test:123'),
+                      status=200,
+                      content_type='text/xml'
+                    )
+        r = self.client.get(
+                reverse("repo_direct:xml-edit",
+                    kwargs={
+                        'pid': 'test:123',
+                        'dsid': 'DC'
+                        }
+                ),
+                **{
+                    'REMOTE_USER': 'x@brown.edu',
+                    'Shibboleth-eppn': 'x@brown.edu'
+                }
+        )
+        self.assertEqual(r.status_code, 200)
+
+    @responses.activate
+    def test_edit_content_xml_datastream_post(self):
+        responses.add(responses.GET, 'http://testserver/fedora/objects/test:123/datastreams',
+                  body=test_data.DATASTREAMS_XML,
+                  status=200,
+                  content_type='text/xml'
+                )
+        responses.add(responses.GET, 'http://testserver/fedora/objects/test:123/datastreams/DC',
+                      body=test_data.DS_PROFILE_PATTERN.format(ds_id='DC', ds_state='A'),
+                      status=200,
+                      content_type='text/xml'
+                    )
+        responses.add(responses.PUT, 'http://testserver/api/private/items/',
+                      body=json.dumps({}),
+                      status=200,
+                      content_type='application/json'
+                    )
+        url = reverse('repo_direct:xml-edit', kwargs={ 'pid': 'test:123', 'dsid': 'DC'})
+        post_data = {'xml_content': test_data.DC_XML.format(PID='test:123')}
+        r = self.client.post(url, data=post_data,
+                **{
+                    'REMOTE_USER': 'x@brown.edu',
+                    'Shibboleth-eppn': 'x@brown.edu'
+                }
+        )
+        self.assertRedirects(r, reverse('repo_direct:display', args=('test:123',)), fetch_redirect_response=False)
 

@@ -14,10 +14,12 @@ from . import app_settings as settings
 
 
 class FileReplacementForm( forms.Form ):
+
     replacement_file = forms.FileField(label="File", widget=AdminFileWidget)
 
 
 class CommonFormHelperMixin(object):
+
     @property
     def helper(self):
         if not hasattr(self, '_helper'):
@@ -26,12 +28,14 @@ class CommonFormHelperMixin(object):
             self._helper.add_input(Submit('submit', 'Save'))
         return self._helper
 
-class EditXMLForm( forms.Form , CommonFormHelperMixin):
+
+class EditXMLForm(forms.Form, CommonFormHelperMixin):
+
     xml_content = forms.CharField(widget=AceWidget(mode='xml', width="100%", height="500px"))
 
 
-
 class RepoLandingForm(forms.Form):
+
     pid = forms.CharField(error_messages={'required': 'Please enter a pid'})
 
 
