@@ -395,7 +395,8 @@ def xml_edit(request, pid, dsid):
                 if not r.ok:
                     err_msg = f'error saving {dsid} content\n'
                     err_msg += f'{r.status_code} - {r.text}'
-                    return HttpResponseServerError(err_msg)
+                    logger.error(err_msg)
+                    raise Exception(err_msg)
             else:
                 if dsid in obj.ds_list:
                     datastream_obj = obj.getDatastreamObject(dsid)
