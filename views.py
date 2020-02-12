@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import tempfile
 from django.core.mail import mail_admins
 from django.urls import reverse
 from django.contrib import messages
@@ -399,12 +400,21 @@ def xml_edit(request, pid, dsid):
                     raise Exception(err_msg)
             else:
                 if dsid in obj.ds_list:
-                    datastream_obj = obj.getDatastreamObject(dsid)
-                    datastream_obj.content = xml_content.encode('utf-8')
-                    datastream_obj.save()
+                    with tempfile.NamedTemporaryFile(prefix=dsid, suffix='.xml', delete=True, mode='w+b') as f:
+                        f.write(xml_content.encode('utf8'))
+                        f.flush()
+                        f.seek(0)
+                        r = _post_content_file(pid, dsid=dsid, content_file=f, overwrite=True)
+                    if not r.ok:
+                        err_msg = f'error saving content\n'
+                        err_msg += f'{r.status_code} - {r.text}'
+                        logger.error(err_msg)
+                        raise Exception(err_msg)
                 else:
-                    return HttpResponseServerError('%s is not a valid datastream' % dsid)
-            messages.info(request, '%s datastream updated' % dsid)
+                    err_msg = f'{dsid} is not a valid datastream'
+                    logger.error(err_msg)
+                    raise Exception(err_msg)
+            messages.info(request, f'{dsid} datastream updated')
             return HttpResponseRedirect(reverse("repo_direct:display", args=(pid,)))
     elif request.method == 'GET':
         if dsid in obj.ds_list:
